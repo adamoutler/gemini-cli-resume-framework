@@ -1,0 +1,8 @@
+# pandoc_defaults.yaml
+pdf-engine: xelatex
+variables:
+  geometry: "top=1in, bottom=1in, left=1in, right=1in"
+  mainfont: "DejaVu Sans"
+  monofont: "DejaVu Sans Mono"
+  documentclass: article
+  fontsize: 11pt

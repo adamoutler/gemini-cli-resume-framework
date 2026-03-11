@@ -1,0 +1,420 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ATS-Compatible Resume Schema",
+  "description": "A strict JSON schema for resumes, optimized for ATS parsing fidelity based on 'ATS Resume Field Compatibility Research.md'. Adheres to the standard JSON Resume structure but enforces specific constraints for parsing reliability.",
+  "type": "object",
+  "required": [
+    "basics",
+    "work",
+    "education",
+    "skills"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "basics": {
+      "type": "object",
+      "description": "Tier 1 Entity: Contact Information. Must reside in the main body, not headers/footers.",
+      "required": [
+        "name",
+        "email",
+        "phone",
+        "location",
+        "summary"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Candidate Name. Implicitly mapped to Candidate Name field."
+        },
+        "label": {
+          "type": "string",
+          "description": "Target Job Title. Helps with keyword matching."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Primary Email Address. Mandatory contact field."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary Phone Number. Mandatory contact field."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Personal Website URL."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Tier 1 Entity: Professional Summary. High-density keyword source. Must be plain text, no tables."
+        },
+        "location": {
+          "type": "object",
+          "description": "Geographic Location. Required for filtering.",
+          "required": [
+            "city",
+            "region",
+            "countryCode"
+          ],
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "countryCode": {
+              "type": "string",
+              "description": "ISO 2-letter code (e.g., US)"
+            },
+            "region": {
+              "type": "string",
+              "description": "State or Province (e.g., [State])"
+            }
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "description": "Social Profiles (LinkedIn, GitHub).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "network": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      }
+    },
+    "work": {
+      "type": "array",
+      "description": "Tier 1 Entity: Professional History / Work Experience. Must use chronological format.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "position",
+          "startDate",
+          "summary",
+          "highlights"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Company Name. MUST appear before dates in the rendered output for correct parsing."
+          },
+          "position": {
+            "type": "string",
+            "description": "Job Title. Primary keyword filter."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^([1-2][0-9]{3}-(0[1-9]|1[0-2])-[0-9]{2}|[1-2][0-9]{3}-(0[1-9]|1[0-2]))$",
+            "description": "Start Date. Format: YYYY-MM-DD or YYYY-MM. Rendered as MM/YYYY."
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^([1-2][0-9]{3}-(0[1-9]|1[0-2])-[0-9]{2}|[1-2][0-9]{3}-(0[1-9]|1[0-2])|Present)$",
+            "description": "End Date. Format: YYYY-MM-DD or YYYY-MM. Use 'Present' for current roles."
+          },
+          "summary": {
+            "type": "string",
+            "description": "High-level role overview."
+          },
+          "highlights": {
+            "type": "array",
+            "description": "Role Description / Achievements. Must be a flat list of strings (bullets).",
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "type": "string",
+            "description": "Job Location (City, State/Country). Important for filtering."
+          }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "description": "Tier 1 Entity: Academic Background / Education.",
+      "items": {
+        "type": "object",
+        "required": [
+          "institution",
+          "area",
+          "studyType",
+          "startDate",
+          "endDate"
+        ],
+        "properties": {
+          "institution": {
+            "type": "string",
+            "description": "Institution Name."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "area": {
+            "type": "string",
+            "description": "Major / Field of Study."
+          },
+          "studyType": {
+            "type": "string",
+            "description": "Degree Awarded (e.g., Bachelor, Associate)."
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Start Date. Format: YYYY-MM-DD."
+          },
+          "endDate": {
+            "type": "string",
+            "description": "Graduation Date. Format: YYYY-MM-DD."
+          },
+          "score": {
+            "type": "string",
+            "description": "GPA (Optional)."
+          },
+          "courses": {
+            "type": "array",
+            "description": "Relevant Coursework (Optional).",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "description": "Tier 1 Entity: Technical Aptitude / Skills. Must be a flat list, no tables.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "keywords"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Skill Category (e.g., Programming, Security)."
+          },
+          "level": {
+            "type": "string",
+            "description": "Proficiency Level (e.g., Expert, Advanced). Optional."
+          },
+          "keywords": {
+            "type": "array",
+            "description": "List of specific skills. Must be a simple array of strings.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "awards": {
+      "type": "array",
+      "description": "Tier 1 Entity: Credentials / Awards.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "awarder": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "certificates": {
+      "type": "array",
+      "description": "Tier 1 Entity: Credentials / Certifications.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Certification Name (e.g., CISSP)."
+          },
+          "date": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "description": "Tier 1 Entity: Projects (often mapped to Work Experience or separate Projects section).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entity": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "fluency": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "publications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "volunteer": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

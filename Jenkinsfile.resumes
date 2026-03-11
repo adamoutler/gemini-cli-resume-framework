@@ -1,0 +1,155 @@
+pipeline {
+    agent {
+        label 'Wrangler1'
+    }
+
+    stages {
+        stage('Setup') {
+            steps {
+                sh '''
+                    if [ ! -d "venv" ]; then
+                        python3 -m venv venv
+                    fi
+                    ./venv/bin/pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Checkout Resumes Repo') {
+            steps {
+                dir('resumes_repo') {
+                    git branch: 'main', 
+                        credentialsId: '[git-credentials-id]', 
+                        url: 'https://github.com/[Username]/resumes'
+                }
+            }
+        }
+
+        stage('Update Aggregated CV Data') {
+            steps {
+                sh './venv/bin/python3 Agentic_Tasks/Maintenance/update_full_cv.py'
+                script {
+                    // Find the latest directory to copy the full CV to
+                    def latestDir = sh(script: "ls -d resumes_repo/20??-??-??/ | sort -r | head -n 1", returnStdout: true).trim().replaceAll(/\/$/, "")
+                    if (latestDir) {
+                        echo "Copying aggregated CV to ${latestDir}"
+                        sh "cp cv-data/resumes/full_cv_data_latest.md ${latestDir}/"
+                    }
+                    pushResumesRepo("Update Aggregated CV Data")
+                }
+            }
+        }
+
+        stage('Process JDs') {
+            steps {
+                script {
+                    // Find the latest directory (assumed to be named YYYY-MM-DD)
+                    def latestDir = sh(script: "ls -d resumes_repo/20??-??-??/ | sort -r | head -n 1", returnStdout: true).trim().replaceAll(/\/$/, "")
+                    if (!latestDir) {
+                        error "No directories found in resumes_repo"
+                    }
+                    
+                    echo "Scanning for Job Descriptions in: ${latestDir}"
+                    
+                    // Get list of JD files (handling both .pd.txt and .jd.txt)
+                    def jdFiles = sh(script: "find ${latestDir} -name '*.pd.txt' -o -name '*.jd.txt' -maxdepth 1 | sort", returnStdout: true).trim().split('\n').findAll { it }
+                    def total = jdFiles.size()
+                    
+                    if (total == 0) {
+                        echo "No JDs found in ${latestDir}. Contents:"
+                        sh "ls -la ${latestDir}"
+                        return
+                    }
+
+                    echo "Found ${total} JDs to process."
+
+                    def consecutiveFailures = 0
+                    for (int i = 0; i < total; i++) {
+                        def jdPath = jdFiles[i]
+                        def jdName = jdPath.split('/').last()
+                        // Strip both possible extensions to get the clean base name
+                        def baseName = jdName.replaceAll(/(\.pd)?(\.jd)?\.txt$/, "")
+                        
+                        stage("JD: ${baseName}") {
+                            script {
+                                echo "Checking status for: ${jdName}"
+                                // De-duplication: Skip if PDF already exists anywhere in resumes_repo
+                                def exists = sh(script: "find resumes_repo -mindepth 2 -name '${baseName}.pdf' | grep . || true", returnStdout: true).trim()
+                                if (exists) {
+                                    echo "RESULT: SKIPPED - PDF already exists at ${exists}"
+                                    return
+                                }
+
+                                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                                    try {
+                                        echo "RESULT: PROCESSING"
+                                        sh "./venv/bin/python3 Agentic_Tasks/Orchestrator/resume_orchestrator.py --jd ${jdPath} --skip-existing"
+                                        consecutiveFailures = 0 // Reset on success
+                                        pushResumesRepo("Automated Resume Generation: ${jdName}")
+                                    } catch (Exception e) {
+                                        consecutiveFailures++
+                                        echo "RESULT: FAILED (${consecutiveFailures} consecutive). Error: ${e.message}"
+                                        if (consecutiveFailures >= 3) {
+                                            error "Terminating build due to 3 consecutive failures."
+                                        }
+                                        throw e // Rethrow so catchError marks the stage as failed
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Upload Results') {
+            steps {
+                script {
+                    pushResumesRepo("Automated Resume Generation Final Sync")
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def latestDir = ""
+                dir('resumes_repo') {
+                    // Find the latest directory (assumed to be named YYYY-MM-DD)
+                    latestDir = sh(script: "ls -d 20??-??-??/ | sort -r | head -n 1", returnStdout: true).trim().replaceAll(/\/$/, "")
+                    if (latestDir) {
+                        withCredentials([string(credentialsId: '[jenkins-token-id]', variable: 'USER_TOKEN')]) {
+                            sh """
+                                curl -sL -u "[Username]@gmail.com:${USER_TOKEN}" "${env.BUILD_URL}consoleText" > "${latestDir}/build-${env.BUILD_NUMBER}.log"
+                                echo "Finished: ${currentBuild.currentResult} #${env.BUILD_NUMBER}" >> "${latestDir}/build-${env.BUILD_NUMBER}.log"
+                            """
+                        }
+                    }
+                }
+                if (latestDir) {
+                    pushResumesRepo("Capture jenkins build no.${env.BUILD_NUMBER}")
+                }
+            }
+        }
+    }
+}
+
+def pushResumesRepo(message) {
+    dir('resumes_repo') {
+        withCredentials([usernamePassword(credentialsId: '[git-credentials-id]', usernameVariable: 'GITEA_USER', passwordVariable: 'GITEA_TOKEN')]) {
+            withEnv(["COMMIT_MESSAGE=${message}"]) {
+                sh '''
+                    git config user.email "jenkins@example.com"
+                    git config user.name "Jenkins Bot"
+                    git add .
+                    if ! git diff --staged --quiet; then
+                        git commit -m "$COMMIT_MESSAGE"
+                        git remote set-url origin https://${GITEA_USER}:${GITEA_TOKEN}@git.example.com/AI/resumes.git
+                        git push origin main
+                    fi
+                '''
+            }
+        }
+    }
+}

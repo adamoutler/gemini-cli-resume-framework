@@ -1,0 +1,14 @@
+{{#if resume.careerHighlights.length}}
+<section class="section">
+  <header>
+    <h2 class='section-title'>Career Highlights</h2>
+  </header>
+  <section id="career-highlights">
+    <ul class="highlights">
+      {{#each resume.careerHighlights}}
+      <li>{{.}}</li>
+      {{/each}}
+    </ul>
+  </section>
+</section>
+{{/if}}

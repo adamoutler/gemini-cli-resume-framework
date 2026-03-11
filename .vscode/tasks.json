@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build and Launch Portfolio",
+            "type": "shell",
+            "command": "cd portfolio && rm -rf data && mkdir -p data && cp -r ../resumes data/ && cp -r ../cv-data data/ && docker compose up --build --force-recreate",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

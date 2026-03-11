@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+
+# Temporary & Cache
+chrome_data/
+test_sessions/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build Artifacts (Keep source JSON/MD, ignore generated)
+resumes/*_AUDIT_REPORT.md
+resumes/*_audit_result.json
+resumes/*_REGRESSION_REPORT.md

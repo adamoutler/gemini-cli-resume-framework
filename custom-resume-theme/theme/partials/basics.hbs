@@ -1,0 +1,113 @@
+{{#resume.basics}}
+	<header id="header" class="clear">
+		{{#if image}}
+		<img class="image" src="{{image}}" alt="{{name}}" />
+		<div class="middle">
+			<h1 class="name">{{name}}</h1>
+			<h2 class="label">{{label}}</h2>
+		</div>
+		{{else}}
+		<div>
+			<h1 class="name">{{name}}</h1>
+			<h2 class="label">{{label}}</h2>
+		</div>
+		{{/if}}
+
+		{{#location}}
+		<span class="location">
+			{{#if address}}
+			<span class="address">{{address}},</span>
+			{{/if}}
+			{{#if postalCode}}
+			<span class="postalCode">{{postalCode}},</span>
+			{{/if}}
+			{{#if city}}
+			<span class="city">{{city}},</span>
+			{{/if}}
+			{{#if region}}
+			<span class="region">{{region}}</span>
+			{{/if}}
+			{{#if countryCode}}
+			<span class="countryCode">({{countryCode}})</span>
+			{{/if}}
+		</span>
+		{{/location}}
+
+		{{#birthDate birth}}
+		{{/birthDate}}
+
+		<div id="contact">
+			{{#if email}}
+			<div class="email">
+				<span class="fa-regular fa-envelope"></span>
+				<b>email: </b><a class="hide-href-print" href="mailto:{{trim email}}">{{trim email}}</a>
+			</div>
+			{{/if}}
+			{{#if phone}}
+			<div class="phone">
+				<span class="fa-solid fa-mobile-screen-button"></span>
+				<b>phone: </b><a class="hide-href-print" href="tel:{{phone}}">{{phone}}</a>
+			</div>
+			{{/if}}
+		</div>
+
+		<div id="profiles">
+			{{#if profiles.length}}
+			{{#each profiles}}
+			<div class="item">
+				{{#if network}}
+				<div class="username">
+					<span class="fa-brands fa-{{spaceToDash network}} {{spaceToDash network}} social"></span>
+					<span class="url">
+						<b>{{network}}: </b>
+						{{#if url}}
+						<a target="_blank" href="{{url}}"><span class="show-only-url-print">{{username}}</span></a>
+						{{else}}
+						<span>{{username}}</span>
+						{{/if}}
+					</span>
+				</div>
+				{{/if}}
+			</div>
+			{{/each}}
+			{{/if}}
+
+			{{#if url}}
+			<div class="item">
+				<div class="username">
+					<span class="fa-brands fa-personal-representative personal-representative social"></span>
+					<span class="url">
+						<span class="fa-solid fa-globe" aria-hidden="true"></span>
+						<b>website: </b><a target="_blank" href="{{url}}"><span class="show-only-url-print">{{url}}</span></a>
+					</span>
+				</div>
+			</div>
+			{{/if}}
+			{{#unless url}}
+				{{#if website}}
+				<div class="item">
+					<div class="username">
+						<span class="fa-brands fa-personal-representative personal-representative social"></span>
+						<span class="url">
+							<span class="fa-solid fa-globe" aria-hidden="true"></span>
+							<b>website: </b><a target="_blank" href="{{website}}"><span class="show-only-url-print">{{website}}</span></a>
+						</span>
+					</div>
+				</div>
+				{{/if}}
+			{{/unless}}
+		</div>
+	</header>
+
+	{{#if summary}}
+	<section class="section summary">
+    <header>
+      <h2 class="section-title">summary</h2>
+    </header>
+		<section class="main-summary">
+			<div>{{paragraphSplit summary}}</div>
+		</section>
+	</section>
+	{{/if}}
+
+{{/resume.basics}}

@@ -1,0 +1,5 @@
+# Ignore all files in this directory...
+*
+# ...but not this .gitignore file itself.
+!.gitignore
+node_modules
