@@ -9,8 +9,9 @@ This workflow automates the process of creating a tailored JSON Resume, HTML/PDF
 
 **WARNING: RESOURCE INTENSIVE OPERATION**
 - This is a time and token expensive operation.
-- It takes approximately 20 minutes to complete.
+- **It can take between 15 to 45 minutes for the thorough process to be completed.**
 - It involves multiple operations with 8 separate Gemini-based AI Agents.
+- **INSTRUCTION FOR AI:** You MUST explicitly warn the user about this 15-45 minute execution time *before* you start the orchestrator or immediately upon starting it, so they know what to expect.
 
 ## Prerequisites
 
