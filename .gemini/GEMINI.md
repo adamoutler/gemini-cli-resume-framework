@@ -28,7 +28,6 @@ Refer to the available skills for specific execution details and standards.
 ## Project Sub-Agents
 This project utilizes specialized sub-agents for discrete, high-level tasks. Delegate to them when appropriate:
 - **`interview-intelligence`**: Generates strategic interview preparation dossiers.
-- **`resume-orchestration`**: The primary engine for all resume generation tasks. Delegate to this sub-agent for artifact creation.
 
 ## Reporting Standard
 - **Automated Workflows:** When running long-running processes (like resume orchestration), **DO NOT** summarize the tool output or list files.
