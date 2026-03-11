@@ -8,7 +8,7 @@ import time
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
-RESUMES_DIR = os.path.join(PROJECT_ROOT, "resumes")
+RESUMES_DIR = os.path.join(PROJECT_ROOT, "cv-data", "resumes")
 VENV_PYTHON = os.path.join(PROJECT_ROOT, "venv", "bin", "python3")
 HTML_TO_PDF_SCRIPT = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/html_to_pdf.py")
 

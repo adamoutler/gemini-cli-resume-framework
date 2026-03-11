@@ -15,7 +15,7 @@ CONTEXT_MODEL = "gemini-2.0-flash"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
-RESUMES_DIR = os.path.join(PROJECT_ROOT, "resumes")
+RESUMES_DIR = os.path.join(PROJECT_ROOT, "cv-data", "resumes")
 MAX_RETRIES = 5
 
 # Detect VENV Python

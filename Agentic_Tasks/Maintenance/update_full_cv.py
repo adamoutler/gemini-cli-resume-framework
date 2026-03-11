@@ -9,7 +9,7 @@ from utils.context_loader import load_cv_context
 
 PROJECT_ROOT = os.getcwd()
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
-FULL_CV_PATH = os.path.join(PROJECT_ROOT, "resumes", "full_cv_data_latest.md")
+FULL_CV_PATH = os.path.join(PROJECT_ROOT, "cv-data", "resumes", "full_cv_data_latest.md")
 
 def main():
     print(f"Aggregating CV data from {CV_DATA_DIR}...")
