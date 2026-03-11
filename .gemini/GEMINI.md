@@ -39,4 +39,4 @@ This project utilizes specialized sub-agents for discrete, high-level tasks. Del
 - The repository root must be kept entirely clean of these files. Never generate or leave artifact files in the root folder.
 
 ## User Information
-- For general information about the current user, you must always read the markdown files in @cv-data/general/
+- For general information about the current user, you must always read the markdown files in @../cv-data/general/
