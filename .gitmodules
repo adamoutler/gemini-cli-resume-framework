@@ -1,0 +1,3 @@
+[submodule "cv-data"]
+	path = cv-data
+	url = ssh://git@192.168.1.100:2223/aoutler/cv-data.git
