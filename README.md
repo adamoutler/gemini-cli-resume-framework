@@ -55,6 +55,19 @@ For detailed technical instructions on the AI workflow, see [**.gemini/GEMINI.md
 
 ## Resume Orchestration Workflow
 
+> **⚠️ Not your average RAG Resume Generator**
+>
+> Generating a truly competitive resume requires more than just dumping data into an LLM. This repository houses a highly detailed, complex **agentic pipeline** engineered for 100% validatable, fact-based accuracy. 
+> 
+> You maintain your comprehensive career history in the secure `cv-data` repository. When you provide a Job Description, the Orchestrator doesn't just skim it. It consumes your entire background in full context and initiates a rigorous, logical process taking **15 to 45 minutes of dedicated Google Gemini Pro compute time**.
+> 
+> * **Iterative Perfection:** The system writes, critiques, rewrites, and audits the resume multiple times to ensure the absolute most relevant experience is highlighted.
+> * **Zero AI Artifacts:** It aggressively strips out telltale "AI slop" like excessive em-dashes, generic buzzwords, and synthetic phrasing.
+> * **Adversarial Defense:** It actively scans the target Job Description for hidden "gotchas" or prompt injections intended to confuse AI screening tools.
+> * **Strict Constraints:** The final output is guaranteed to be a perfectly formatted, dense, high-impact 2-page resume tailored flawlessly to the role.
+> 
+> You build the data. The agents do the heavy lifting.
+
 This document describes the multi-agent orchestration process used to generate ATS-optimized resumes and cover letters.
 
 ### Workflow Diagram
