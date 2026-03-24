@@ -84,38 +84,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 ## 5. JSON Schema Constraints (CRITICAL)
 *   **Format:** Valid JSON. **ABSOLUTELY NO MARKDOWN FORMATTING** inside the JSON strings (no `**bold**`, no `*bullets*`, no `[links](url)`). Plain text only.
 *   **Dates:** YYYY-MM-DD.
-*   **Structure:**
-    ```json
-    {
-      "basics": { ... },
-      "careerHighlights": [
-        "Highlight 1 (Quantitative/Strategic)",
-        "Highlight 2",
-        "Highlight 3"
-      ],
-      "work": [
-        {
-          "name": "Company Name",
-          "company": "Company Name",
-          "position": "Job Title",
-          "startDate": "YYYY-MM-DD",
-          "endDate": "YYYY-MM-DD",
-          "summary": "Role overview...",
-          "highlights": ["Impact 1", "Impact 2"]
-        }
-      ],
-      "education": [ ... ],
-      "skills": [ ... ],
-      "certificates": [
-          {
-             "name": "Certification Name",
-             "date": "YYYY-MM-DD",
-             "issuer": "Issuer Name"
-          }
-      ],
-      "projects": [ ... ]
-    }
-    ```
+*   **Structure:** Follow the DYNAMIC JSON SCHEMA CONSTRAINT appended to these instructions.
 *   **Career Highlights:** You MUST populate the `careerHighlights` array with 3-5 top-tier achievements. These are displayed prominently.
 *   **Certifications:** You MUST populate the `certificates` array with relevant professional certifications found in the `cv-data`. These will be rendered as a special column within the Skills section. DO NOT put certifications in the `skills` array itself; use the `certificates` array.
     *   **Selection:** Select the certifications that are most **RELEVANT** to the Target Job Description.

@@ -323,7 +323,16 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
     # =========================================================================
     log("PHASE 2/5", "Initial Build (Drafting Resume)...")
     builder_persona = load_persona("builder_persona", ORCHESTRATOR_DIR)
-    
+
+    # Generate dynamic schema based on active theme
+    schema_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Utils/generate_schema_mock.py")
+    try:
+        schema_mock_result = subprocess.run([VENV_PYTHON, schema_script], capture_output=True, text=True, check=True)
+        dynamic_schema = schema_mock_result.stdout.strip()
+        builder_persona += f"\n\n## 5. DYNAMIC JSON SCHEMA CONSTRAINT\nYou MUST output your response matching the following EXACT schema structure. Do not use fields not present here:\n```json\n{dynamic_schema}\n```\n"
+    except Exception as e:
+        log("WARN", f"Failed to generate dynamic schema mock: {e}. Falling back to default schema.")
+
     # Fork for Builder
     builder_session = fork_session(MASTER_SESSION_ID)
     log("DEBUG", f"Invoking Builder on {MODEL} session...")
