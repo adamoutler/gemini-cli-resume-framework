@@ -32,6 +32,7 @@ This project utilizes specialized sub-agents for discrete, high-level tasks. Del
 ## Reporting Standard
 - **Automated Workflows:** When running long-running processes (like resume orchestration), **DO NOT** summarize the tool output or list files.
 - Simply confirm completion.
+- When complete, you MUST output the email address used, the location of the resume.pdf, and the location of the cover letter.txt.
 
 ## Artifact Management
 - **MANDATORY**: ALL content, temporary or otherwise, MUST go in the `cv-data/` directory. `cv-data` should be the only place to output content.

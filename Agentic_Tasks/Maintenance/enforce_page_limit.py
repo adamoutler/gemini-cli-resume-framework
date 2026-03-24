@@ -146,45 +146,70 @@ class PageLimitEnforcer:
         words = [w for w in clean_text.split() if w.strip()] if 'clean_text' in locals() else all_text.split()
         return len(words)
 
-    def ai_prune_bullets(self, overflow_lines):
+    def ai_prune_bullets(self, overflow_pages):
         """Prunes bullets using AI as a last resort."""
-        log("AI", f"Invoking AI to prune content (Overflow: ~{overflow_lines} lines)...")
+        log("AI", f"Invoking AI to prune content (Overflow pages: {overflow_pages})...")
         
         jd_context = ""
         if self.jd_path and os.path.exists(self.jd_path):
             with open(self.jd_path, 'r') as f:
-                jd_context = f"\n### JOB DESCRIPTION ###\n{f.read()[:2000]}..." # Truncate for token savings
+                jd_context = f"\n### JOB DESCRIPTION ###\n{f.read()[:2000]}..."
+
+        # If overflow is massive, programmatically drop the oldest work entry to save tokens/time
+        if overflow_pages > 5:
+             if "work" in self.current_json and len(self.current_json["work"]) > 3:
+                 log("WARN", "Massive overflow. Programmatically dropping oldest work entry.")
+                 self.current_json["work"].pop()
+                 return True
+             if "projects" in self.current_json and len(self.current_json["projects"]) > 3:
+                 log("WARN", "Massive overflow. Programmatically dropping oldest project entry.")
+                 self.current_json["projects"].pop()
+                 return True
+
+        if overflow_pages > 1:
+            instruction = f"The resume is over by {overflow_pages} pages. You MUST remove an entire older job role (not the most recent) AND 5-10 bullet points across remaining roles."
+        else:
+            instruction = "The resume is slightly over the limit. Remove exactly 2-3 of the LEAST impactful bullet points from older roles."
 
         prompt = f"""
-You are an expert Resume Editor. The resume is {self.max_pages + 1}+ pages long.
+You are an expert Resume Editor. The resume is too long.
 TARGET: Strictly {self.max_pages} pages.
 
 INSTRUCTIONS:
-1. Review the 'work' and 'projects' sections.
+1. {instruction}
 2. Identify the LEAST relevant bullet points based on the JD (if provided) or general impact.
-3. Remove 2-3 bullet points from the oldest or least relevant roles.
-4. Rewrite any "widow" lines (bullets wrapping by 1-2 words) to be concise.
-5. Do NOT remove whole roles unless they are very old (>10 years) and irrelevant.
-6. **CRITICAL:** Do NOT merge, combine, or consolidate separate job entries. If there are distinct entries for "Company A" and "Company B", they MUST remain distinct. merging them is strictly prohibited.
+3. Rewrite any "widow" lines (bullets wrapping by 1-2 words) to be concise.
+4. **CRITICAL:** Do NOT merge, combine, or consolidate separate job entries.
 
 {jd_context}
 
 Return ONLY the valid, shortened JSON.
 """
-        result_text = call_gemini(prompt, json.dumps(self.current_json))
+        # If the JSON is too large, it might fail. We only send the work and projects.
+        subset = {
+            "work": self.current_json.get("work", []),
+            "projects": self.current_json.get("projects", [])
+        }
+        
+        result_text = call_gemini(prompt, json.dumps(subset))
         
         if result_text:
             import re
             match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
+            parsed = None
             if match:
-                try:
-                    self.current_json = json.loads(match.group(1))
-                    return True
+                try: parsed = json.loads(match.group(1))
                 except: pass
-            try:
-                self.current_json = json.loads(result_text)
+            if not parsed:
+                try: parsed = json.loads(result_text)
+                except: pass
+                
+            if parsed:
+                if "work" in parsed:
+                    self.current_json["work"] = parsed["work"]
+                if "projects" in parsed:
+                    self.current_json["projects"] = parsed["projects"]
                 return True
-            except: pass
             
         log("ERROR", "AI Pruning failed to return valid JSON.")
         return False
@@ -198,28 +223,19 @@ Return ONLY the valid, shortened JSON.
         return False
 
     def try_layout_optimization(self):
-        """Step 1: Greedy Layout Optimization."""
-        
-        # Pass 1: Keep Scale 1.0, Tighten Margins
-        scale = 1.0
-        for margin in self.MARGINS:
-            try:
-                self.render(scale, margin, []) 
-                if self.get_pdf_page_count(self.output_pdf_path) <= self.max_pages:
-                    log("SUCCESS", f"Fit achieved with Scale: {scale}, Margin: {margin}")
-                    return {"scale": scale, "margin": margin, "hidden_sections": []}
-            except: continue
-
-        # Pass 2: Keep Margin 0.5in (Min), Reduce Scale
-        margin = "0.5in"
-        for scale in self.SCALES: # [1.0, 0.99, ...]
-            if scale == 1.0: continue # Already checked
-            try:
-                self.render(scale, margin, [])
-                if self.get_pdf_page_count(self.output_pdf_path) <= self.max_pages:
-                    log("SUCCESS", f"Fit achieved with Scale: {scale}, Margin: {margin}")
-                    return {"scale": scale, "margin": margin, "hidden_sections": []}
-            except: continue
+        """Step 1: Greedy Layout Optimization. Iterate scales, then margins."""
+        for scale in self.SCALES:
+            for margin in self.MARGINS:
+                try:
+                    self.render(scale, margin, []) 
+                    current_pages = self.get_pdf_page_count(self.output_pdf_path)
+                    log("INFO", f"Tested Scale {scale}, Margin {margin} -> Pages: {current_pages}")
+                    if current_pages <= self.max_pages:
+                        log("SUCCESS", f"Fit achieved with Scale: {scale}, Margin: {margin}")
+                        return {"scale": scale, "margin": margin, "hidden_sections": []}
+                except Exception as e:
+                    log("WARN", f"Render or page count failed at Margin {margin}: {e}")
+                    continue
             
         return None
 
@@ -260,10 +276,14 @@ Return ONLY the valid, shortened JSON.
         # --- PHASE 3: AI Pruning (Last Resort) ---
         log("PHASE", "Invoking AI Bullet Pruning (Last Resort)...")
         
-        # Try AI pruning in a loop (up to 3 times)
-        for attempt in range(3):
-            overflow = self.get_overflow_lines(self.output_pdf_path, target_page=self.max_pages+1)
-            if self.ai_prune_bullets(overflow or 15):
+        # Try AI pruning in a loop (up to 5 times)
+        for attempt in range(5):
+            current_pages = self.get_pdf_page_count(self.output_pdf_path)
+            if current_pages <= self.max_pages:
+                break
+                
+            overflow_pages = current_pages - self.max_pages
+            if self.ai_prune_bullets(overflow_pages):
                 # After pruning, retry layout optimization
                 winning_settings = self.try_layout_optimization()
                 if winning_settings:

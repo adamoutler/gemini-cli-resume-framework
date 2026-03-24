@@ -91,10 +91,12 @@ def convert_html_to_pdf(html_path, pdf_path, scale=1.0, margin="0.4in", hide_sec
         # Inject Payload + Cover (Tighter Flow Version)
         js_injection = f"""
             const wrapper = document.createElement('div');
-            wrapper.style.position = 'relative';
-            wrapper.style.marginTop = '1px';          // Minimal gap
-            wrapper.style.width = '100%';
-            wrapper.style.height = 'auto';
+            wrapper.style.position = 'absolute';
+            wrapper.style.bottom = '0';
+            wrapper.style.width = '1px';
+            wrapper.style.height = '1px';
+            wrapper.style.overflow = 'hidden';
+            wrapper.style.zIndex = '-1';
             
             const payload = document.createElement('div');
             payload.innerText = '{payload_hex}';
