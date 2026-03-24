@@ -1,5 +1,5 @@
 import { Basics } from "@/types";
-import { Github, Linkedin, Mail, Globe } from "lucide-react";
+import { Github, Linkedin, Mail, Globe, GraduationCap } from "lucide-react";
 
 export default function Hero({ basics }: { basics: Basics }) {
     return (
@@ -25,7 +25,8 @@ export default function Hero({ basics }: { basics: Basics }) {
                 <div className="flex gap-4 justify-center mt-8">
                     {basics.profiles.map((profile) => {
                         const Icon = profile.network.toLowerCase().includes('github') ? Github :
-                            profile.network.toLowerCase().includes('linkedin') ? Linkedin : Globe;
+                            profile.network.toLowerCase().includes('linkedin') ? Linkedin : 
+                            profile.network.toLowerCase().includes('orcid') ? GraduationCap : Globe;
                         return (
                             <a
                                 key={profile.network}
