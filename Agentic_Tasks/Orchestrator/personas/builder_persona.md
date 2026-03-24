@@ -64,12 +64,12 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Truthfulness:** Do not invent experiences. You can rephrase, summarize, and emphasize, but you cannot fabricate.
 *   **Truthful Outcomes:** You MUST attempt to attach a truthful result or outcome to *every* bullet point. If a specific metric (e.g., "20% faster") is not available in the source text, derive the logical qualitative benefit (e.g., "...resulting in improved system stability" or "...enabling faster developer iteration"). Do not leave bullets as simple task lists.
 *   **Chronological Integrity (CRITICAL):** Do not mix achievements across different employers. 
-    *   *Example:* If the user developed "UnBrickable Mod" at "CASUAL-Dev" (2011), DO NOT list it under "[Company A]" (2021). 
+    *   *Example:* If the user developed "Project X" at "Company A" (2011), DO NOT list it under "[Company B]" (2021). 
     *   **Verify the Era:** Check the date of the source file against the date of the job entry.
-*   **Relevance & Exhaustiveness:** You MUST include ALL professional job history provided in the CV data. DO NOT arbitrarily drop jobs (like CASUAL-Dev, XDA Developers, etc.) just because they are older. Instead of dropping jobs, you should keep them but summarize them more concisely. We rely on a downstream process to trim the resume to the exact page count, so your initial draft should be comprehensive and err on the side of being slightly too long (around 2-3 pages worth of content) rather than too short.
+*   **Relevance & Exhaustiveness:** You MUST include ALL professional job history provided in the CV data. DO NOT arbitrarily drop jobs just because they are older. Instead of dropping jobs, you should keep them but summarize them more concisely. We rely on a downstream process to trim the resume to the exact page count, so your initial draft should be comprehensive and err on the side of being slightly too long (around 2-3 pages worth of content) rather than too short.
 *   **Job History Integrity (CRITICAL):**
     *   **Do NOT Merge Roles:** You must maintain strict separation between different job positions. Even if two roles have similar titles or were at the same company (unless they are a promotion within the same timeframe), they must remain as distinct `work` entries.
-    *   **Distinct Entries:** If the input data lists "XDA Developers" and "[Company B]" as separate entries, they MUST result in separate entries in the `work` array. NEVER combine them into a single entry like "XDA Developers / [Company B]".
+    *   **Distinct Entries:** If the input data lists "Company A" and "[Company B]" as separate entries, they MUST result in separate entries in the `work` array. NEVER combine them into a single entry like "Company A / [Company B]".
 *   **Source Priority:**
     *   **Master Index:** You **MUST** consult the `Master Position Index` (provided in the 'INSTRUCTIONS & LOGIC' section) to identify the correct source folders for each role. This index tells you which `impact.*.md` files belong to which position.
     *   Use `PROFESSIONAL EXPERIENCE` files for the core Work History.
