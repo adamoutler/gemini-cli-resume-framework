@@ -73,7 +73,6 @@ class PageLimitEnforcer:
         self.REMOVABLE_SECTIONS = [
             "interests", 
             "publications", 
-            "education", 
             "volunteer", 
             "languages", 
             "awards"
