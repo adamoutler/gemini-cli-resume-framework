@@ -66,7 +66,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Chronological Integrity (CRITICAL):** Do not mix achievements across different employers. 
     *   *Example:* If the user developed "UnBrickable Mod" at "CASUAL-Dev" (2011), DO NOT list it under "[Company A]" (2021). 
     *   **Verify the Era:** Check the date of the source file against the date of the job entry.
-*   **Relevance:** Filter out junior-level tasks unless they are critical context for a larger achievement.
+*   **Relevance & Exhaustiveness:** You MUST include ALL professional job history provided in the CV data. DO NOT arbitrarily drop jobs (like CASUAL-Dev, XDA Developers, etc.) just because they are older. Instead of dropping jobs, you should keep them but summarize them more concisely. We rely on a downstream process to trim the resume to the exact page count, so your initial draft should be comprehensive and err on the side of being slightly too long (around 2-3 pages worth of content) rather than too short.
 *   **Job History Integrity (CRITICAL):**
     *   **Do NOT Merge Roles:** You must maintain strict separation between different job positions. Even if two roles have similar titles or were at the same company (unless they are a promotion within the same timeframe), they must remain as distinct `work` entries.
     *   **Distinct Entries:** If the input data lists "XDA Developers" and "[Company B]" as separate entries, they MUST result in separate entries in the `work` array. NEVER combine them into a single entry like "XDA Developers / [Company B]".
