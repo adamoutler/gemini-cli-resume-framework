@@ -27,7 +27,7 @@ Analyze the Resume. Identify **critical gaps** where the resume fails to address
 *   **NO MARKDOWN IN SUGGESTIONS:** Do not include markdown formatting (like `**bold**`) in your `suggestion` text.
 
 ## 3. Title & Role Alignment
-*   Does the candidate's summary and latest job title align with the target role? If the target is "Principal" and the resume reads like "Senior", flag it.
+*   Ensure the candidate's summary and job titles accurately reflect the provided source data. Flag any job title that has been improperly altered to match the JD.
 
 ## 4. Visual Layout Audit (Skills)
 *   **Count the Skill Categories:** The `skills` array MUST have a length of exactly **2** or **5**.

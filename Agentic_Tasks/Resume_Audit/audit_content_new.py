@@ -132,6 +132,9 @@ def flatten_resume(data):
     # Awards
     if 'awards' in data:
         for i, award in enumerate(data['awards']):
+            if 'title' in award: add_claim(f"awards[{i}].title", f"{award['title']} (Award Title)")
+            if 'date' in award: add_claim(f"awards[{i}].date", f"{award['date']} (Award Date)")
+            if 'awarder' in award: add_claim(f"awards[{i}].awarder", f"{award['awarder']} (Awarder)")
             if 'summary' in award: add_claim(f"awards[{i}].summary", award['summary'])
 
     # Skills
@@ -491,6 +494,18 @@ if __name__ == "__main__":
     # Only load context text if we don't have a parent session (fallback mode)
     context_text = ""
     if not args.parent_session_id:
+        context_text = load_context(CV_DATA_DIR)
+
+    findings, regression_failures = run_investigation(
+        args.resume_file, 
+        context_text, 
+        resume_mode=args.resume,
+        parent_session_id=args.parent_session_id
+    )
+    
+    if findings is not None:
+        run_final_audit(findings, regression_failures, output_path)
+args.parent_session_id:
         context_text = load_context(CV_DATA_DIR)
 
     findings, regression_failures = run_investigation(

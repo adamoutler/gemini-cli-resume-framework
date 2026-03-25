@@ -8,9 +8,6 @@ instructions:
     - The specific 'source_file'.
     - A direct 'evidence_quote' from the file.
     - **Crucially:** Ensure the 'claim' field in your output matches the input claim exactly. Do not truncate it.
-  - **SPECIAL HANDLING FOR JOB TITLES:**
-    - Job titles (e.g., 'Job Title for...') should be handled with a very large amount of flexibility.
-    - As long as the job title somewhat relates to the original position in the context, mark it as 'VERIFIED' or 'PLAUSIBLE'.
   - **SPECIAL HANDLING FOR SKILLS:**
     - If a claim starts with 'Skills with Keywords:', verify ALL listed skills in the group.
     - If ANY skill in the list is unsupported, mark the claim as 'WEAK' (or 'UNVERIFIED' if mostly false).
