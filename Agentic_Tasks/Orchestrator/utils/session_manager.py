@@ -64,7 +64,7 @@ def init_master_session(cv_context, jd_text, model=MODEL):
         "3. Reply only with: 'ACK'."
     )
     
-    cmd = ["gemini", "--model", model, "-p", "Acknowledge the data provided.", "--output-format", "text"]
+    cmd = ["gemini", "--model", model, "-p", "reply with OK", "--output-format", "text"]
     
     try:
         # Run the init command
