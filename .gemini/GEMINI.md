@@ -17,6 +17,7 @@ This repository is a structured database of professional experience. It uses aut
 
 ## Core Mandate
 Always utilize the automated orchestrator for resume generation tasks. Do not build JSON files manually or manually execute steps of the pipeline (e.g., manual PDF rendering or cover letter generation) if the pipeline fails or times out. The pipeline is designed to generate all required outputs autonomously. 
+- When a user provides a Job Description without mentioning a scheduled interview, interviewer, or date, ALWAYS automatically run the resume-orchestration pipeline. DO NOT ask if they want to run the interview-intelligence tool unless there is clear context of an upcoming interview.
 
 If the pipeline fails or the end of the workflow is not detected:
 1.  **Analyze the failure:** Examine logs and tool outputs to identify the root cause.

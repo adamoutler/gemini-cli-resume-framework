@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 # We use the same model defined in the orchestrator, or default to flash for speed/cost if unspecified
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-2.5-flash-lite"
 GEMINI_TMP_DIR = os.path.expanduser("~/.gemini/tmp")
 
 def log(message):
@@ -64,7 +64,7 @@ def init_master_session(cv_context, jd_text, model=MODEL):
         "3. Reply only with: 'ACK'."
     )
     
-    cmd = ["gemini", "--model", model, "--output-format", "text"]
+    cmd = ["gemini", "--model", model, "-p", "Acknowledge the data provided.", "--output-format", "text"]
     
     try:
         # Run the init command

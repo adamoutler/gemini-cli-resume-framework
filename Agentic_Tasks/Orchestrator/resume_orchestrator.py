@@ -11,7 +11,7 @@ from utils.session_manager import init_master_session, fork_session
 # Configuration
 # MODEL variable is now used implicitly via session_manager, but we keep it here for fallback/reference
 MODEL = "gemini-3-pro-preview" 
-CONTEXT_MODEL = "gemini-2.0-flash"
+CONTEXT_MODEL = "gemini-2.5-flash-lite"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
