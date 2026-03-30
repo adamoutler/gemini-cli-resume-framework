@@ -11,6 +11,10 @@ def load_cv_context(data_dir):
     all_files = {} # { "category_key": [ (rel_path, content), ... ] }
     
     for root, dirs, files in os.walk(data_dir):
+        # Ignore the resumes directory to prevent recursive context amplification
+        if "resumes" in dirs:
+            dirs.remove("resumes")
+            
         dirs.sort()
         files.sort()
         for filename in files:

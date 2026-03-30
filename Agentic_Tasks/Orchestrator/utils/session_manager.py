@@ -68,24 +68,33 @@ def init_master_session(cv_context, jd_text, model=MODEL):
     
     try:
         # Run the init command
-        subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False)
+        result = subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False)
         
+        if result.returncode != 0:
+            log(f"Master session initialization failed with exit code {result.returncode}. Error: {result.stderr}")
+            return None
+            
         # Find the latest session ID
         list_cmd = "gemini --list-sessions"
-        result = subprocess.check_output(list_cmd, shell=True, text=True).strip()
+        result_list = subprocess.check_output(list_cmd, shell=True, text=True).strip()
         
         # Parse output to find the most recent session
-        lines = result.split('\n')
+        lines = result_list.split('\n')
         if not lines: return None
         
         for line in reversed(lines):
              match = re.search(r'([a-f0-9\-]{36})', line)
              if match:
                  master_id = match.group(1)
-                 log(f"{model} Master Session Created")
-                 return master_id
+                 # Verify the session actually exists on disk before returning it
+                 if find_session_file_by_id(master_id):
+                     log(f"{model} Master Session Created: {master_id}")
+                     return master_id
+                 else:
+                     log(f"Master session ID {master_id} found in list, but file is missing on disk.")
+                     return None
         
-        log(f"Failed to extract Session ID. Raw result: '{result}'")
+        log(f"Failed to extract Session ID. Raw result: '{result_list}'")
         return None
             
     except Exception as e:

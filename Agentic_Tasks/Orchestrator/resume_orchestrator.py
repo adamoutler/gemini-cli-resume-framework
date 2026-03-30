@@ -10,7 +10,7 @@ from utils.session_manager import init_master_session, fork_session
 
 # Configuration
 # MODEL variable is now used implicitly via session_manager, but we keep it here for fallback/reference
-MODEL = "gemini-3-pro-preview" 
+MODEL = "gemini-3.1-pro-preview" 
 CONTEXT_MODEL = "gemini-2.5-flash-lite"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
@@ -58,8 +58,8 @@ def call_gemini(persona_header, user_task, session_id=None):
                 check=False
             )
             
-            # Success path
-            if result.returncode == 0 and result.stdout.strip():
+            # Success path - Accept output if stdout has data, even if there are soft CLI warnings
+            if result.stdout and result.stdout.strip():
                 return result.stdout.strip()
             
             # Error handling
@@ -89,9 +89,24 @@ def extract_json(text):
     if match:
         try: return json.loads(match.group(1))
         except: pass
+        
     try:
-        start = text.find('{')
+        # Avoid CLI initialization JSON logs by finding the largest JSON object
+        # usually found towards the end of the payload.
         end = text.rfind('}')
+        if end == -1: return None
+        
+        brace_count = 0
+        start = -1
+        for i in range(end, -1, -1):
+            if text[i] == '}':
+                brace_count += 1
+            elif text[i] == '{':
+                brace_count -= 1
+                if brace_count == 0:
+                    start = i
+                    break
+                    
         if start != -1 and end != -1:
             return json.loads(text[start:end+1])
     except: pass
@@ -486,12 +501,20 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
             "--output", draft_path.replace(".json", "_AUDIT_REPORT.md"),
             "--parent-session-id", MASTER_SESSION_ID # Pass the Master Session!
         ]
-        subprocess.run(audit_cmd)
+        result = subprocess.run(audit_cmd)
         
         audit_result_path = draft_path.replace(".json", "_audit_result.json")
         audit_passed = True
         
-        if os.path.exists(audit_result_path):
+        if result.returncode != 0:
+            log("ERROR", f"Forensic Audit script failed with exit code {result.returncode}.")
+            audit_passed = False
+            audit_data = {
+                "status": "FAIL",
+                "failure_type": "SYSTEM_ERROR",
+                "failed_claims": [{"claim": "System Error: The audit script crashed during execution. Try generating a more conservative/safer resume structure."}]
+            }
+        elif os.path.exists(audit_result_path):
             with open(audit_result_path, 'r') as f:
                 audit_data = json.load(f)
             
@@ -514,6 +537,13 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
                         f"### DRAFT RESUME ###\n{json.dumps(resume_json)}\n\n"
                         f"### REGRESSION FAILURES ###\n{json.dumps(failed_claims)}\n\n"
                         "Fix the resume to comply with these formatting rules."
+                    )
+                elif failure_type == "SYSTEM_ERROR":
+                    log("WARN", "Audit failed due to a SYSTEM_ERROR (crash).")
+                    fix_task = (
+                        f"### DRAFT RESUME ###\n{json.dumps(resume_json)}\n\n"
+                        f"### SYSTEM ERROR ###\n{json.dumps(failed_claims)}\n\n"
+                        "The audit script crashed, likely due to malformed output or unexpected structure. Please regenerate the resume focusing on strictly adhering to the standard JSON Resume schema and plain text."
                     )
                 else:
                     log("WARN", "Audit failed due to FACTUAL inconsistencies.")

@@ -7,7 +7,7 @@ import re
 from collections import Counter
 
 # Configuration
-MODEL = "gemini-3-pro-preview"
+MODEL = "gemini-3.1-pro-preview"
 MAX_RETRIES = 5
 
 def log(step, message):

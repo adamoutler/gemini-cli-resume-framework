@@ -70,9 +70,26 @@ def flatten_resume(data):
             seen_hashes.add(claim_hash)
     
     # Basics
-    if 'basics' in data and 'summary' in data['basics']:
-        add_claim("basics.summary", data['basics']['summary'])
-        
+    if 'basics' in data:
+        basics = data['basics']
+        if 'summary' in basics: add_claim("basics.summary", basics['summary'])
+        if 'label' in basics: add_claim("basics.label", basics['label'])
+        if 'email' in basics: add_claim("basics.email", basics['email'])
+        if 'phone' in basics: add_claim("basics.phone", basics['phone'])
+        if 'location' in basics:
+            loc = basics['location']
+            if isinstance(loc, dict):
+                loc_str = ", ".join(filter(None, [str(loc.get('city', '')), str(loc.get('region', '')), str(loc.get('countryCode', ''))]))
+                if loc_str.replace(", ", "").strip():
+                    add_claim("basics.location", f"Location: {loc_str}")
+            elif isinstance(loc, str):
+                add_claim("basics.location", f"Location: {loc}")
+
+    # Career Highlights (Custom Extension)
+    if 'careerHighlights' in data:
+        for i, highlight in enumerate(data['careerHighlights']):
+            add_claim(f"careerHighlights[{i}]", f"Career Highlight: {highlight}")
+            
     # Work Experience
     if 'work' in data:
         for i, job in enumerate(data['work']):
@@ -505,15 +522,4 @@ if __name__ == "__main__":
     
     if findings is not None:
         run_final_audit(findings, regression_failures, output_path)
-args.parent_session_id:
-        context_text = load_context(CV_DATA_DIR)
 
-    findings, regression_failures = run_investigation(
-        args.resume_file, 
-        context_text, 
-        resume_mode=args.resume,
-        parent_session_id=args.parent_session_id
-    )
-    
-    if findings is not None:
-        run_final_audit(findings, regression_failures, output_path)

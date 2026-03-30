@@ -84,6 +84,10 @@ def main():
     file_count = 0
     
     for root, dirs, files in os.walk(CV_DATA_DIR):
+        # Ignore the resumes directory entirely
+        if "resumes" in dirs:
+            dirs.remove("resumes")
+            
         for file in files:
             if file.endswith(".md"):
                 file_count += 1
