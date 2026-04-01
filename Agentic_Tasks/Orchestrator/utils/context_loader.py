@@ -15,6 +15,10 @@ def load_cv_context(data_dir):
         if "resumes" in dirs:
             dirs.remove("resumes")
             
+        # Ignore directories containing an EXCLUDE_DIRECTORY file
+        if "EXCLUDE_DIRECTORY" in files:
+            continue
+            
         dirs.sort()
         files.sort()
         for filename in files:

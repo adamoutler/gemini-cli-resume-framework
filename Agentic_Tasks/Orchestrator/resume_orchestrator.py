@@ -10,8 +10,8 @@ from utils.session_manager import init_master_session, fork_session
 
 # Configuration
 # MODEL variable is now used implicitly via session_manager, but we keep it here for fallback/reference
-MODEL = "gemini-3.1-pro-preview" 
-CONTEXT_MODEL = "gemini-2.5-flash-lite"
+MODEL = "gemini-2.5-flash" 
+CONTEXT_MODEL = "gemini-2.5-flash"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
@@ -64,6 +64,7 @@ def call_gemini(persona_header, user_task, session_id=None):
             
             # Error handling
             err_msg = result.stderr.lower() if result.stderr else ""
+            log("DEBUG", f"Call failed. returncode={result.returncode}, stdout length={len(result.stdout) if result.stdout else 0}, stderr length={len(result.stderr) if result.stderr else 0}\nStderr Tail: {result.stderr[-1000:]}")
             if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or result.returncode != 0:
                 wait_time = (2 ** attempt) * 32 
                 log("WARN", f"Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s... Error: {err_msg[:100]}")
@@ -352,11 +353,26 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
     builder_session = fork_session(MASTER_SESSION_ID)
     log("DEBUG", f"Invoking Builder on {MODEL} session...")
     
+    # Check for a user-specific addendum in the business_logic folder
+    addendum_path = os.path.join(CV_DATA_DIR, "business_logic", "builder_addendum.md")
+    addendum_content = ""
+    if os.path.exists(addendum_path):
+        with open(addendum_path, 'r') as f:
+            addendum_content = f.read()
+            log("INFO", "Loaded user-specific builder addendum.")
+    else:
+        log("WARN", "No builder_addendum.md found. Using default builder logic.")
+
     resume_json = None
     build_task = "Using the CV DATA and TARGET JOB DESCRIPTION in your history, generate the JSON resume now."
     
+    # Append any special instructions from Sentinel or user notes
     if special_instructions:
         build_task += special_instructions
+    
+    # Append the addendum content to the main builder persona
+    if addendum_content:
+        builder_persona += f"\n\n## USER-SPECIFIC OVERRIDES (FROM business_logic/builder_addendum.md) ##\n{addendum_content}"
         
     for attempt in range(3):
         raw_response = call_gemini(builder_persona, build_task, session_id=builder_session)

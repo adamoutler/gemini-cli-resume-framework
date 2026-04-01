@@ -70,22 +70,23 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Chronological Integrity (CRITICAL):** Do not mix achievements across different employers. 
     *   *Example:* If the user developed "Project X" at "Company A" (2011), DO NOT list it under "[Company B]" (2021). 
     *   **Verify the Era:** Check the date of the source file against the date of the job entry.
-*   **Relevance & Exhaustiveness:** You MUST include ALL professional job history provided in the CV data. DO NOT arbitrarily drop jobs just because they are older. Instead of dropping jobs, you should keep them but summarize them more concisely. We rely on a downstream process to trim the resume to the exact page count, so your initial draft should be comprehensive and err on the side of being slightly too long (around 2-3 pages worth of content) rather than too short.
-*   **Job History Integrity (CRITICAL):**
-    *   **Do NOT Merge Roles:** You must maintain strict separation between different job positions. Even if two roles have similar titles or were at the same company (unless they are a promotion within the same timeframe), they must remain as distinct `work` entries.
-    *   **Distinct Entries:** If the input data lists "Company A" and "[Company B]" as separate entries, they MUST result in separate entries in the `work` array. NEVER combine them into a single entry like "Company A / [Company B]".
+*   **Relevance & Dynamic Weighting:** You MUST include ALL professional job history provided in the CV data, but you should NOT force excessive bullets into every position. Instead, dynamically scale the number of `highlights` (bullet points) to be between **1 and 7 bullets per role** based on its relevance to the Target Job Description. Recent, highly relevant roles should have 5-7 high-impact bullets. Older or less relevant roles should be distilled down to 1-3 critical highlights.
+*   **Less Metadata, More Action:** Minimize the use of the `summary` string field within `work` entries. Rely almost entirely on the `highlights` array (bullet points) to tell the story. Let the bullets do the heavy lifting.
+*   **Job History Integrity & Consolidation:**
+    *   **Contextual Role Consolidation:** You should evaluate the job history and determine if roles should be merged to save space, based on what makes narrative sense. Older jobs or multiple sequential assignments from the exact same employer (e.g., various military deployments or a progression from Junior to Senior) are prime candidates for consolidation under a single overarching entry and combined title (e.g., "Senior Engineer / Systems Architect"). However, if the roles are fundamentally distinct in a way that highlights a major career pivot (e.g., "Fry Cook" to "Store Manager"), you may keep them separate if the distinction is critical to the narrative.
+    *   **Chronological Integrity:** When consolidating roles, ensure the dates reflect the entire continuous span of employment.
 *   **Source Priority:**
     *   **Master Index:** You **MUST** consult the `Master Position Index` (provided in the 'INSTRUCTIONS & LOGIC' section) to identify the correct source folders for each role. This index tells you which `impact.*.md` files belong to which position.
     *   Use `PROFESSIONAL EXPERIENCE` files for the core Work History.
     *   Use `impact.*.md` files for high-level bullet points.
     *   Use `personal-projects` *only* to fill skill gaps if professional experience is missing a specific niche tool (e.g., "Proficient in Rust via open-source contributions").
 
-## 4. Conditional Section Rules (Publications & Media)
+## 5. Conditional Section Rules (Publications & Media)
 *   **Publications (`authored-articles`):** OPTIONAL. Include **only** if they establish thought leadership *relevant* to the target role (e.g., "Security Research", "Kernel Engineering"). If they are hobbyist/consumer-grade (e.g., "How to unlock a phone") and the role is "Principal Enterprise Architect", **OMIT** them unless they demonstrate a unique, relevant hacking skill.
 *   **Media Mentions (`news-media-mentions`):** OPTIONAL. Use only to bolster a "Public Figure" or "Subject Matter Expert" narrative. If the mention is trivial, leave it out.
 *   **Context Labels vs. Output Schema:** The input data contains sections like "GENERAL / MISC" or "MEDIA". These are *labels for your reading*. **DO NOT** create JSON fields named `general_misc`, `media`, or `unclassified`. You must fit all data into the standard JSON Resume schema (`basics`, `work`, `education`, `skills`, `projects`, `publications`, `awards`).
 
-## 5. JSON Schema Constraints (CRITICAL)
+## 6. JSON Schema Constraints (CRITICAL)
 *   **Format:** Valid JSON. **ABSOLUTELY NO MARKDOWN FORMATTING** inside the JSON strings (no `**bold**`, no `*bullets*`, no `[links](url)`). Plain text only.
 *   **No Hallucinated URLs:** Do NOT populate `url` fields in the `certificates`, `awards`, or `projects` arrays with generic domains (like personal websites) unless a specific verification URL is explicitly provided in the CV Data. Leave the `url` field empty or omit it entirely if the data is missing.
 *   **Dates:** YYYY-MM-DD.

@@ -72,9 +72,10 @@ class PageLimitEnforcer:
         self.SCALES = [1.0, 0.99] # Removed 0.98 to keep scaling minimal
         self.REMOVABLE_SECTIONS = [
             "interests", 
+            "languages", 
             "publications", 
             "volunteer", 
-            "languages", 
+            "education", 
             "awards"
         ]
 
@@ -165,32 +166,56 @@ class PageLimitEnforcer:
                  self.current_json["projects"].pop()
                  return True
 
-        if overflow_pages > 1:
-            instruction = f"The resume is over by {overflow_pages} pages. You MUST remove an entire older job role (not the most recent) AND 5-10 bullet points across remaining roles."
-        else:
-            instruction = "The resume is slightly over the limit. Remove exactly 2-3 of the LEAST impactful bullet points from older roles."
-
-        prompt = f"""
-You are an expert Resume Editor. The resume is too long.
-TARGET: Strictly {self.max_pages} pages.
-
-INSTRUCTIONS:
-1. {instruction}
-2. Identify the LEAST relevant bullet points based on the JD (if provided) or general impact.
-3. Rewrite any "widow" lines (bullets wrapping by 1-2 words) to be concise.
-4. **CRITICAL:** Do NOT merge, combine, or consolidate separate job entries.
-
-{jd_context}
-
-Return ONLY the valid, shortened JSON.
+        pruner_persona_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Orchestrator', 'personas', 'resume_pruner_persona.md')
+        
+        # Prepare the stdin for the gemini call
+        jd_persona_header = f"""---
+name: position description
+description: The full text of the job description to be used for relevance scoring.
+---
 """
+        jd_content = ""
+        if self.jd_path and os.path.exists(self.jd_path):
+            with open(self.jd_path, 'r') as f:
+                jd_content = f.read()
+
+        # Combine the pruner persona, the JD persona, and the JD content for stdin
+        # This uses the shell piping technique to combine multiple inputs for the gemini tool
+        import shlex
+        safe_jd_content = shlex.quote(f"{jd_persona_header}\n{jd_content}")
+        gemini_stdin_content = f"cat {pruner_persona_path} <(echo -e {safe_jd_content})"
+        
         # If the JSON is too large, it might fail. We only send the work and projects.
         subset = {
             "work": self.current_json.get("work", []),
             "projects": self.current_json.get("projects", [])
         }
         
-        result_text = call_gemini(prompt, json.dumps(subset))
+        # Construct the task prompt
+        task_prompt = f"""You have been provided with the full candidate CV data in your session history. Now, review the following oversized resume and prune it according to your persona's rules.
+        
+### OVERSIZED RESUME (JSON) ###
+{json.dumps(subset)}
+"""
+        safe_task_prompt = shlex.quote(task_prompt)
+
+        # Build the final gemini command
+        cmd = [
+            "bash",
+            "-c",
+            f"{gemini_stdin_content} | gemini --resume {os.environ.get('MASTER_SESSION_ID')} -p {safe_task_prompt}"
+        ]
+        
+        result_text = ""
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result_text = result.stdout
+        except subprocess.CalledProcessError as e:
+            log("ERROR", f"AI Pruning Gemini call failed: {e.stderr}")
+            return False
+        except Exception as e:
+            log("ERROR", f"An unexpected error occurred during AI Pruning: {e}")
+            return False
         
         if result_text:
             import re

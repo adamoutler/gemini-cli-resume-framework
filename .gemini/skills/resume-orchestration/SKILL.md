@@ -20,7 +20,7 @@ This workflow automates the process of creating a tailored JSON Resume, HTML/PDF
 
 ## Execution
 
-Run the orchestrator using the following command:
+Run the orchestrator using the following command. Do not background this process, use `timeout`, or attempt to `tail` logs. Simply execute the script and wait for it to complete. 
 
 ```bash
 ./venv/bin/python3 Agentic_Tasks/Orchestrator/resume_orchestrator.py --jd <path_to_job_description.txt>
@@ -29,6 +29,13 @@ Run the orchestrator using the following command:
 **Optional Arguments:**
 - `--notes "Strategic guidance"`: Provide extra context to the builder (e.g., "Emphasize AI and Security"). These are notes provided by user to the resume builder. You are never to make decisions on what should be added. The Resume Builder has instructions which should be modified by the user and not by the AI.
 - `--sentinel-only`: Only run the initial security/trap detection check.
+
+## Post-Execution
+
+Once the orchestrator completes successfully:
+1. Stage all changes in the `cv-data/` repository directory.
+2. Stage all changes in the main `Cv` repository.
+3. Commit and push the changes for both repositories. Use a descriptive commit message indicating the generation of the resume for the specific JD.
 
 ## Workflow Phases
 
