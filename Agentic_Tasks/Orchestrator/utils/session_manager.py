@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 # We use the same model defined in the orchestrator, or default to flash for speed/cost if unspecified
-MODEL = "gemini-3.1-pro-preview"
+MODEL = "gemini-2.5-flash-lite"
 GEMINI_TMP_DIR = os.path.expanduser("~/.gemini/tmp")
 
 def log(message):

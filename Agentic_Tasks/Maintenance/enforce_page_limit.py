@@ -248,24 +248,70 @@ description: The full text of the job description to be used for relevance scori
         return False
 
     def try_layout_optimization(self):
-        """Step 1: Greedy Layout Optimization. Iterate scales, then margins."""
-        for scale in self.SCALES:
-            for margin in self.MARGINS:
+        """Step-up Layout Optimization. Start at minimums, increase until overflow."""
+        # Sorted from smallest to largest
+        scales = [0.99, 1.0]
+        margins = ["0.5in", "0.6in", "0.7in", "0.8in", "0.9in", "1.0in"]
+
+        # Baseline check (minimum settings)
+        min_scale = scales[0]
+        min_margin = margins[0]
+        
+        try:
+            self.render(min_scale, min_margin, [])
+            baseline_pages = self.get_pdf_page_count(self.output_pdf_path)
+            log("INFO", f"Baseline check: Scale {min_scale}, Margin {min_margin} -> Pages: {baseline_pages}")
+        except Exception as e:
+            log("WARN", f"Baseline render failed: {e}")
+            return None
+
+        if baseline_pages > self.max_pages:
+            return None # Does not fit even at minimum settings
+            
+        # It fits! Now step-up to find the best looking (largest) settings
+        last_valid = {"scale": min_scale, "margin": min_margin, "hidden_sections": []}
+        
+        for scale in scales:
+            for margin in margins:
+                # Skip the baseline we just checked
+                if scale == min_scale and margin == min_margin:
+                    continue
+                    
                 try:
                     self.render(scale, margin, []) 
                     current_pages = self.get_pdf_page_count(self.output_pdf_path)
-                    log("INFO", f"Tested Scale {scale}, Margin {margin} -> Pages: {current_pages}")
+                    log("INFO", f"Step-Up check: Scale {scale}, Margin {margin} -> Pages: {current_pages}")
+                    
                     if current_pages <= self.max_pages:
-                        log("SUCCESS", f"Fit achieved with Scale: {scale}, Margin: {margin}")
-                        return {"scale": scale, "margin": margin, "hidden_sections": []}
+                        last_valid = {"scale": scale, "margin": margin, "hidden_sections": []}
+                    else:
+                        # We hit the overflow limit. Return the last valid settings.
+                        log("SUCCESS", f"Overflow at Scale {scale}, Margin {margin}. Reverting to Scale: {last_valid['scale']}, Margin: {last_valid['margin']}")
+                        # Re-render with last valid before returning
+                        self.render(last_valid['scale'], last_valid['margin'], [])
+                        return last_valid
                 except Exception as e:
-                    log("WARN", f"Render or page count failed at Margin {margin}: {e}")
-                    continue
-            
-        return None
+                    log("WARN", f"Render or page count failed at Scale {scale}, Margin {margin}: {e}")
+                    # If a render fails, we'll just stop stepping up and return last valid
+                    self.render(last_valid['scale'], last_valid['margin'], [])
+                    return last_valid
+                    
+        # If we get through all of them and they all fit (e.g. it's a short resume)
+        log("SUCCESS", f"Max settings achieved with Scale: {last_valid['scale']}, Margin: {last_valid['margin']}")
+        # Ensure final render is the max settings
+        self.render(last_valid['scale'], last_valid['margin'], [])
+        return last_valid
+
+    def backup_json(self, suffix):
+        """Creates a backup of the current JSON."""
+        backup_path = self.json_path.replace(".json", f"_{suffix}.json")
+        with open(backup_path, 'w') as f:
+            json.dump(self.current_json, f, indent=2)
+        log("INFO", f"Created backup: {os.path.basename(backup_path)}")
 
     def enforce(self):
-        log("START", f"Enforcing {self.max_pages}-page limit for {self.base_name}")
+        log("START", f"Enforcing {self.max_pages}-page limit for {self.base_name} (Bottom-Up Optimization)")
+        self.backup_json("pre_resize")
         
         # --- PHASE 1 & 2: Loop Section Removal ---
         # We try layout optimization first. If fail, remove a section, try again.
@@ -286,11 +332,12 @@ description: The full text of the job description to be used for relevance scori
                 self.save_result(winning_settings)
                 return True
             
-            log("INFO", "Layout optimization failed for this content set.")
+            log("INFO", "Baseline optimization failed (content too long).")
 
             # If we are here, layout failed. Remove a section.
             if sections_to_remove:
                 next_section = sections_to_remove.pop(0)
+                self.backup_json(f"pre_remove_{next_section}")
                 if not self.remove_section(next_section):
                     # Section didn't exist, loop immediately to try next
                     continue
@@ -300,11 +347,18 @@ description: The full text of the job description to be used for relevance scori
 
         # --- PHASE 3: AI Pruning (Last Resort) ---
         log("PHASE", "Invoking AI Bullet Pruning (Last Resort)...")
+        self.backup_json("pre_ai_pruning")
         
         # Try AI pruning in a loop (up to 5 times)
         for attempt in range(5):
+            self.render(0.99, "0.5in", []) # baseline check
             current_pages = self.get_pdf_page_count(self.output_pdf_path)
             if current_pages <= self.max_pages:
+                # Need to try layout optimization to step-up
+                winning_settings = self.try_layout_optimization()
+                if winning_settings:
+                    self.save_result(winning_settings)
+                    return True
                 break
                 
             overflow_pages = current_pages - self.max_pages

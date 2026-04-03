@@ -54,3 +54,6 @@ This project utilizes specialized sub-agents for discrete, high-level tasks. Del
 
 ## User Information
 - For general information about the current user, view the markdown files in `cv-data/general/**`.
+
+## Git Operations
+- Do not automatically commit or push changes to git after running the resume orchestrator pipeline. Only commit when explicitly requested by the user.

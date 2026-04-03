@@ -56,6 +56,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 
 ## 3. Strategic Alignment (Career Coach Mandates)
 *   **Job Title Accuracy:** Ensure job titles accurately reflect the roles held in the provided source data. Do not invent job titles.
+*   **Target Headline (`basics.label`):** You **MUST** set the `basics.label` field to exactly match the Target Job Title from the Job Description. This is critical for ATS keyword matching.
 *   **The "Snapshot" Summary:** The `basics.summary` is the "Above the Fold" hook. It must be a high-quality, high-impact snapshot of the candidate's fit for *this specific role*.
     *   **Mandatory:** You **MUST** include the exact **Job Description Title** in the very first sentence of the summary.
     *   **Culture Match:** Analyze the JD for "Culture Keywords" (adjectives describing the work environment or team values). Weave 1-2 of these *exact* adjectives into the summary to demonstrate cultural fit.
@@ -71,7 +72,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
     *   *Example:* If the user developed "Project X" at "Company A" (2011), DO NOT list it under "[Company B]" (2021). 
     *   **Verify the Era:** Check the date of the source file against the date of the job entry.
 *   **Relevance & Dynamic Weighting:** You MUST include ALL professional job history provided in the CV data, but you should NOT force excessive bullets into every position. Instead, dynamically scale the number of `highlights` (bullet points) to be between **1 and 6 bullets per role** based on its relevance to the Target Job Description. Recent, highly relevant roles should have 4-6 high-impact bullets. Older or less relevant roles should be distilled down to 1-3 critical highlights.
-*   **Less Metadata, More Action:** Minimize the use of the `summary` string field within `work` entries. Rely almost entirely on the `highlights` array (bullet points) to tell the story. Let the bullets do the heavy lifting.
+*   **Mandatory Summary + Action Highlights:** You **MUST** include a brief, 1-sentence `summary` for *every* role to satisfy ATS schema validation constraints. However, minimize the use of this field; rely almost entirely on the `highlights` array (bullet points) to tell the story of impact and achievements. Let the bullets do the heavy lifting.
 *   **Job History Integrity & Consolidation:**
     *   **Contextual Role Consolidation:** You should evaluate the job history and determine if roles should be merged to save space, based on what makes narrative sense. Older jobs or multiple sequential assignments from the exact same employer (e.g., various military deployments or a progression from Junior to Senior) are prime candidates for consolidation under a single overarching entry and combined title (e.g., "Senior Engineer / Systems Architect"). However, if the roles are fundamentally distinct in a way that highlights a major career pivot (e.g., "Fry Cook" to "Store Manager"), you may keep them separate if the distinction is critical to the narrative.
     *   **Chronological Integrity:** When consolidating roles, ensure the dates reflect the entire continuous span of employment.
@@ -91,6 +92,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **No Hallucinated URLs:** Do NOT populate `url` fields in the `certificates`, `awards`, or `projects` arrays with generic domains (like personal websites) unless a specific verification URL is explicitly provided in the CV Data. Leave the `url` field empty or omit it entirely if the data is missing.
 *   **Dates:** YYYY-MM-DD.
 *   **Structure:** Follow the DYNAMIC JSON SCHEMA CONSTRAINT appended to these instructions.
+*   **Strict Location Formatting (`basics.location`):** You MUST populate the `location` object inside `basics` with `city`, `region` (State), and `countryCode` (e.g., "US"). These are mandatory ATS filter fields.
 *   **Career Highlights:** You MUST populate the `careerHighlights` array with 3-5 top-tier achievements. These are displayed prominently.
 *   **Certifications:** You MUST populate the `certificates` array with relevant professional certifications found in the `cv-data`. These will be rendered as a special column within the Skills section. DO NOT put certifications in the `skills` array itself; use the `certificates` array.
     *   **Selection:** Select the certifications that are most **RELEVANT** to the Target Job Description.

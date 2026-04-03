@@ -11,7 +11,7 @@ from utils.session_manager import init_master_session, fork_session
 # Configuration
 # MODEL variable is now used implicitly via session_manager, but we keep it here for fallback/reference
 MODEL = "gemini-3.1-pro-preview"
-CONTEXT_MODEL = "gemini-3.1-pro-preview"
+CONTEXT_MODEL = "gemini-2.5-flash-lite"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
@@ -206,6 +206,7 @@ def save_resume(data, filename, directory):
     return path
 
 def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
+    workflow_start_time = time.time()
     # 0. Check Dependencies
     import sys
     sys.path.append(os.path.join(PROJECT_ROOT, "Agentic_Tasks", "Utils"))
@@ -907,7 +908,14 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
         final_retries = 0
 
     print(f"\n[REPORT] Email: {email}")
-    print(f"[DONE] Workflow complete for {base_name}")
+    
+    workflow_end_time = time.time()
+    elapsed_seconds = int(workflow_end_time - workflow_start_time)
+    elapsed_mins = elapsed_seconds // 60
+    elapsed_secs = elapsed_seconds % 60
+    duration_str = f"{elapsed_mins}m{elapsed_secs:02d}s"
+
+    print(f"[DONE] Workflow complete for {base_name} in {duration_str}")
     print(f"---\nThis generation took {final_retries}/{MAX_RETRIES} retries.")
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
     print(">>>>> END OF ORCHESTRATION <<<<<")
