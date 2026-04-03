@@ -10,8 +10,8 @@ from utils.session_manager import init_master_session, fork_session
 
 # Configuration
 # MODEL variable is now used implicitly via session_manager, but we keep it here for fallback/reference
-MODEL = "gemini-2.5-flash" 
-CONTEXT_MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.1-pro-preview"
+CONTEXT_MODEL = "gemini-3.1-pro-preview"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")
@@ -47,6 +47,7 @@ def call_gemini(persona_header, user_task, session_id=None):
         full_prompt = f"{persona_header}\n\n--- INPUT DATA ---\n{user_task}"
         cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
     
+    backoff_times = [20, 60, 180, 600]
     for attempt in range(MAX_RETRIES):
         try:
             result = subprocess.run(
@@ -55,18 +56,22 @@ def call_gemini(persona_header, user_task, session_id=None):
                 capture_output=True, 
                 text=True, 
                 encoding='utf-8',
-                check=False
+                check=False,
+                timeout=1800
             )
             
             # Success path - Accept output if stdout has data, even if there are soft CLI warnings
             if result.stdout and result.stdout.strip():
+                time.sleep(10) # Adding a 6s delay between successful calls to avoid rate limiting
                 return result.stdout.strip()
             
             # Error handling
             err_msg = result.stderr.lower() if result.stderr else ""
             log("DEBUG", f"Call failed. returncode={result.returncode}, stdout length={len(result.stdout) if result.stdout else 0}, stderr length={len(result.stderr) if result.stderr else 0}\nStderr Tail: {result.stderr[-1000:]}")
             if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or result.returncode != 0:
-                wait_time = (2 ** attempt) * 32 
+                if attempt == MAX_RETRIES - 1:
+                    break
+                wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600
                 log("WARN", f"Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s... Error: {err_msg[:100]}")
                 time.sleep(wait_time)
                 log("INFO", "Resuming execution after backoff...")
@@ -76,12 +81,17 @@ def call_gemini(persona_header, user_task, session_id=None):
             log("ERROR", f"Gemini CLI failed: {result.stderr}")
             return None
             
+        except subprocess.TimeoutExpired:
+            log("WARN" if "log" in globals() else "print", f"Gemini API Timeout (Attempt {attempt+1}/{MAX_RETRIES}). Backing off...")
+            time.sleep(backoff_times[attempt] if attempt < len(backoff_times) else 600)
+            continue
         except Exception as e:
             log("ERROR", f"Execution exception: {e}")
             return None
             
-    log("FATAL", "Max retries exceeded for Gemini API call.")
-    return None
+    log("FATAL", "Failed to communicate cannot reach server. exceeded 429 threshold. Do not attempt to repeat. Do not continue working on this resume. The artifacts from this run should be considered corrupt and unusable.")
+    import sys
+    sys.exit(1)
 
 def extract_json(text):
     if not text: return None
@@ -691,8 +701,11 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
     
     try:
         # Stream output directly to console so user sees the progress of the loop
-        return_code = subprocess.call(enforce_cmd)
-        
+        env = os.environ.copy()
+        if MASTER_SESSION_ID:
+            env["MASTER_SESSION_ID"] = MASTER_SESSION_ID
+        return_code = subprocess.call(enforce_cmd, env=env)
+
         if return_code != 0:
             log("FATAL", "Layout enforcement could not reach 2-page limit. STRICT QUALITY ENFORCED - EXITING.")
             sys.exit(1)

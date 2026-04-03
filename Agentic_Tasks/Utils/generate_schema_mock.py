@@ -25,13 +25,11 @@ def generate_dynamic_mock():
         '    "label": "Target Title",',
         '    "email": "user@example.com",',
         '    "phone": "555-555-5555",',
-        '    "url": "https://adamoutler.com",',
+        '    "url": "https://example.com",',
         '    "summary": "High-impact snapshot...",',
         '    "location": {',
-        '      "address": "123 Main St",',
-        '      "postalCode": "12345",',
-        '      "city": "City",',
-        '      "region": "State",',
+        '      "city": "City (e.g., Remote)",',
+        '      "region": "State (e.g., Florida)",',
         '      "countryCode": "US"',
         '    },',
         '    "profiles": [',
@@ -41,9 +39,8 @@ def generate_dynamic_mock():
         '        "url": "https://linkedin.com/in/user"',
         '      }',
         '    ]',
-        '  },'
+        '  }',
     ]
-
     if "career_highlights" in partials:
         mock.extend([
             '  "careerHighlights": [',

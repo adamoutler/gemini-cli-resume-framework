@@ -22,7 +22,7 @@ from utils.session_manager import fork_session # Import from shared manager
 # Configuration
 BATCH_SIZE = 5
 MAX_WORKERS = 3  # Workers for parallel auditing
-MODEL = "gemini-3-flash-preview" # Fast audit model
+MODEL = "gemini-3.1-pro-preview" # Fast audit model
 CV_DATA_DIR = "./cv-data"
 TMP_DIR = "/tmp/gemini_cv_audit"
 LOG_FILE = os.path.join(TMP_DIR, "audit_debug.log")
@@ -190,7 +190,7 @@ def init_session(context_text):
     
     cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
     try:
-        subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False)
+        subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
         list_cmd = "gemini --list-sessions"
         result = subprocess.check_output(list_cmd, shell=True, text=True).strip()
         
@@ -249,16 +249,20 @@ def call_agent(prompt, session_id=None):
     if session_id:
         cmd.extend(["--resume", session_id])
 
+    backoff_times = [20, 60, 180, 600]
     for attempt in range(MAX_RETRIES):
         try:
-            result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding='utf-8', check=False)
+            result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
             
             if result.returncode == 0:
+                time.sleep(10) # Add delay between requests
                 return result.stdout
 
             err_msg = result.stderr.lower() if result.stderr else ""
             if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg:
-                wait_time = (2 ** attempt) * 32
+                if attempt == MAX_RETRIES - 1:
+                    break
+                wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600
                 log(f"Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s...")
                 time.sleep(wait_time)
                 continue
@@ -266,12 +270,19 @@ def call_agent(prompt, session_id=None):
             log(f"Gemini CLI Error: {result.stderr}")
             return None
 
+        except subprocess.TimeoutExpired:
+            log(f"Gemini API Timeout (Attempt {attempt+1}/{MAX_RETRIES}). Backing off...")
+            if attempt == MAX_RETRIES - 1:
+                break
+            time.sleep(backoff_times[attempt] if attempt < len(backoff_times) else 600)
+            continue
         except Exception as e:
             log(f"Execution failed: {e}")
             return None
     
-    log("FATAL: Max retries exceeded.")
-    return None
+    log("Failed to communicate cannot reach server. exceeded 429 threshold. Do not attempt to repeat. Do not continue working on this resume. The artifacts from this run should be considered corrupt and unusable.")
+    import sys
+    sys.exit(1)
 
 def extract_json(text):
     if not text: return None

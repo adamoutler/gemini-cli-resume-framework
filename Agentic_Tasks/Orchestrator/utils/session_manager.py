@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 # We use the same model defined in the orchestrator, or default to flash for speed/cost if unspecified
-MODEL = "gemini-2.5-flash-lite"
+MODEL = "gemini-3.1-pro-preview"
 GEMINI_TMP_DIR = os.path.expanduser("~/.gemini/tmp")
 
 def log(message):
@@ -66,14 +66,42 @@ def init_master_session(cv_context, jd_text, model=MODEL):
     
     cmd = ["gemini", "--model", model, "-p", "reply with OK", "--output-format", "text"]
     
-    try:
-        # Run the init command
-        result = subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False)
-        
-        if result.returncode != 0:
-            log(f"Master session initialization failed with exit code {result.returncode}. Error: {result.stderr}")
-            return None
+    backoff_times = [20, 60, 180, 600]
+    MAX_RETRIES = 5
+    result = None
+    backoff_times = [20, 60, 180, 600]
+    for attempt in range(MAX_RETRIES):
+        try:
+            # Run the init command
+            result = subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
             
+            if result.returncode != 0:
+                err_msg = result.stderr.lower() if result.stderr else ""
+                if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg:
+                    if attempt == MAX_RETRIES - 1:
+                        break
+                    wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600
+                    log(f"Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s... Error: {err_msg[:100]}")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    log(f"Master session initialization failed with exit code {result.returncode}. Error: {result.stderr}")
+                    return None
+            else:
+                break # Success
+        except subprocess.TimeoutExpired:
+            log(f"Gemini API Timeout (Attempt {attempt+1}/{MAX_RETRIES}). Backing off...")
+            time.sleep(backoff_times[attempt] if attempt < len(backoff_times) else 600)
+            continue
+        except Exception as e:
+            log(f"Session initialization failed: {e}")
+            return None
+    else:
+        log("Failed to communicate cannot reach server. exceeded 429 threshold. Do not attempt to repeat. Do not continue working on this resume. The artifacts from this run should be considered corrupt and unusable.")
+        import sys
+        sys.exit(1)
+        
+    try:
         # Find the latest session ID
         list_cmd = "gemini --list-sessions"
         result_list = subprocess.check_output(list_cmd, shell=True, text=True).strip()
@@ -98,7 +126,7 @@ def init_master_session(cv_context, jd_text, model=MODEL):
         return None
             
     except Exception as e:
-        log(f"Session initialization failed: {e}")
+        log(f"Session listing failed: {e}")
         return None
 
 def fork_session(master_id):

@@ -19,6 +19,7 @@ def call_gemini(system_prompt, user_input):
     full_prompt = f"{system_prompt}\n\n--- INPUT DATA ---\n{user_input}"
     cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
     
+    backoff_times = [20, 60, 180, 600]
     for attempt in range(MAX_RETRIES):
         try:
             result = subprocess.run(
@@ -27,16 +28,20 @@ def call_gemini(system_prompt, user_input):
                 capture_output=True, 
                 text=True, 
                 encoding='utf-8', 
-                check=False
+                check=False,
+                timeout=1800
             )
             
             if result.returncode == 0 and result.stdout.strip():
+                time.sleep(10) # Add delay between requests
                 return result.stdout.strip()
 
             # Error handling
             err_msg = result.stderr.lower() if result.stderr else ""
             if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or result.returncode != 0:
-                wait_time = (2 ** attempt) * 32
+                if attempt == MAX_RETRIES - 1:
+                    break # Exit loop immediately on final failure
+                wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600
                 print(f"[WARN] Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s...")
                 time.sleep(wait_time)
                 print("[INFO] Resuming execution after backoff...")
@@ -45,6 +50,13 @@ def call_gemini(system_prompt, user_input):
             print(f"Error: {result.stderr}")
             return None
 
+        except subprocess.TimeoutExpired:
+            print("subprocess.TimeoutExpired: Gemini CLI hung.")
+            continue
+        except subprocess.TimeoutExpired:
+            print("WARN" if "print" in globals() else "print", f"Gemini API Timeout (Attempt {attempt+1}/{MAX_RETRIES}). Backing off...")
+            time.sleep(backoff_times[attempt] if attempt < len(backoff_times) else 600)
+            continue
         except Exception as e:
             print(f"Error: {e}")
             return None

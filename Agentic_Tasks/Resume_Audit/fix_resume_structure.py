@@ -6,7 +6,7 @@ import glob
 import argparse
 
 # Configuration
-MODEL = "gemini-3-flash-preview"
+MODEL = "gemini-3.1-pro-preview"
 CV_DATA_DIR = "./cv-data"
 
 def load_context(data_dir):
@@ -27,7 +27,7 @@ def call_agent(prompt):
     try:
         # Pass the entire prompt via stdin to avoid "Argument list too long"
         cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
-        result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding='utf-8', check=False)
+        result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
         if result.returncode != 0:
             print(f"Gemini CLI Error: {result.stderr}")
             return None

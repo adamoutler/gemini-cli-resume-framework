@@ -34,7 +34,8 @@ def call_gemini(system_prompt, user_input):
                 capture_output=True, 
                 text=True, 
                 encoding='utf-8',
-                check=False
+                check=False,
+                timeout=1800
             )
             
             if result.returncode == 0 and result.stdout.strip():
