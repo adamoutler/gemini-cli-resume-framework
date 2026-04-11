@@ -18,3 +18,4 @@ npm-debug.log*
 resumes/*_AUDIT_REPORT.md
 resumes/*_audit_result.json
 resumes/*_REGRESSION_REPORT.md
+.geminiignore
