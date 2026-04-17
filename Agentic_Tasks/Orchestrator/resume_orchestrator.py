@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import json
 import time
+import re
 from unidecode import unidecode
 from utils.context_loader import load_cv_context, load_persona
 from utils.session_manager import init_master_session, fork_session
@@ -244,7 +245,10 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
             sys.exit(1)
 
     jd_path = jd_name
-    base_name = os.path.basename(jd_name).replace(".jd.txt", "")
+    raw_base = os.path.basename(jd_name).replace(".jd.txt", "")
+    base_name = re.sub(r'(?i)[-_\s\.]*(?:jd|job[-_\s]*description|pd|position[-_\s]*description)(?=[-_\s\.]|$)', '', raw_base).strip('-_ .')
+    if not base_name:
+        base_name = "Resume"
     jd_dir = RESUMES_DIR
     
     # Check for existing PDF if skip_existing is enabled
@@ -270,7 +274,6 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None):
         print("\n[CRITICAL] Please run a search for non-ASCII characters in 'cv-data/', correct them, and try again.")
         sys.exit(1)
     
-    base_name = os.path.basename(jd_name).replace(".jd.txt", "")
     jd_dir = os.path.dirname(os.path.abspath(jd_name))
     resume_filename = f"{base_name}-resume.json"
     draft_path = os.path.join(jd_dir, resume_filename)

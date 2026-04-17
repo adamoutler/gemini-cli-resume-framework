@@ -4,6 +4,7 @@ import json
 import subprocess
 import argparse
 import time
+import re
 
 # Configuration
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +12,13 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 RESUMES_DIR = os.path.join(PROJECT_ROOT, "cv-data", "resumes")
 VENV_PYTHON = os.path.join(PROJECT_ROOT, "venv", "bin", "python3")
 HTML_TO_PDF_SCRIPT = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/html_to_pdf.py")
+
+# Add Maintenance dir to path so we can import detect_orphans
+sys.path.append(os.path.join(PROJECT_ROOT, "Agentic_Tasks", "Maintenance"))
+try:
+    from detect_orphans import detect_widows_and_orphans
+except ImportError:
+    def detect_widows_and_orphans(pdf_path): return []
 
 # Ensure resume-cli is available
 RESUME_CLI = os.path.join(PROJECT_ROOT, "node_modules", ".bin", "resume")
@@ -20,13 +28,17 @@ if not os.path.exists(RESUME_CLI):
 def log(level, message):
     print(f"[{level.upper()}] {message}", flush=True)
 
-def call_gemini(system_prompt, user_input):
+def call_gemini(system_prompt, user_input, max_retries=3):
     """Calls Gemini API with exponential backoff."""
     full_prompt = f"{system_prompt}\n\n--- INPUT DATA ---\n{user_input}"
-    cmd = ["gemini", "--model", "gemini-3-flash-preview", "--output-format", "text"]
-    MAX_RETRIES = 5
+    cmd = ["gemini", "--model", "gemini-3.1-pro-preview", "--output-format", "text"]
     
-    for attempt in range(MAX_RETRIES):
+    # Try to use master session if available in env
+    session_id = os.environ.get('MASTER_SESSION_ID')
+    if session_id:
+        cmd.extend(["--resume", session_id])
+    
+    for attempt in range(max_retries):
         try:
             result = subprocess.run(
                 cmd, 
@@ -43,8 +55,8 @@ def call_gemini(system_prompt, user_input):
             
             err_msg = result.stderr.lower() if result.stderr else ""
             if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or result.returncode != 0:
-                wait_time = (2 ** attempt) * 32 
-                log("WARN", f"Gemini API Error (Attempt {attempt+1}/{MAX_RETRIES}). Backing off for {wait_time}s...")
+                wait_time = (2 ** attempt) * 15
+                log("WARN", f"Gemini API Error (Attempt {attempt+1}/{max_retries}). Backing off for {wait_time}s...")
                 time.sleep(wait_time)
                 continue
             
@@ -68,18 +80,6 @@ class PageLimitEnforcer:
         with open(json_path, 'r') as f:
             self.current_json = json.load(f)
 
-        # Settings
-        self.MARGINS = ["1.0in", "0.9in", "0.8in", "0.7in", "0.6in", "0.5in"]
-        self.SCALES = [1.0, 0.99] # Removed 0.98 to keep scaling minimal
-        self.REMOVABLE_SECTIONS = [
-            "interests", 
-            "languages", 
-            "publications", 
-            "volunteer", 
-            "education", 
-            "awards"
-        ]
-
     def get_pdf_page_count(self, pdf_path):
         """Returns number of pages using pdfinfo."""
         try:
@@ -91,19 +91,7 @@ class PageLimitEnforcer:
             log("WARN", f"Failed to get page count: {e}")
         return 999 
 
-    def get_overflow_lines(self, pdf_path, target_page=3):
-        """Counts lines on the specific overflow page."""
-        try:
-            cmd = ["pdftotext", "-f", str(target_page), "-l", str(target_page), pdf_path, "-"]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode == 0:
-                lines = [l for l in result.stdout.splitlines() if l.strip()]
-                return len(lines)
-        except:
-            pass
-        return 0
-
-    def render(self, scale, margin, hide_sections):
+    def render(self, scale, margin, hide_sections=[]):
         """Renders the PDF with specific settings."""
         temp_html = os.path.join(RESUMES_DIR, f"{self.base_name}_enforce_tmp.html")
         temp_json = os.path.join(RESUMES_DIR, f"{self.base_name}_enforce_tmp.json")
@@ -113,7 +101,6 @@ class PageLimitEnforcer:
             json.dump(self.current_json, f, indent=2)
 
         # Export HTML
-        # Use relative path for custom theme to ensure compatibility
         theme_path = "./custom-resume-theme"
         subprocess.run(
             [RESUME_CLI, "export", temp_html, "--theme", theme_path, "--resume", temp_json], 
@@ -133,174 +120,169 @@ class PageLimitEnforcer:
         subprocess.run(cmd, capture_output=True, check=True)
         return self.output_pdf_path
 
-    def get_word_count(self, data=None):
-        if data is None: data = self.current_json
-        text_dump = []
-        def extract_text(obj):
-            if isinstance(obj, str): text_dump.append(obj)
-            elif isinstance(obj, list):
-                for item in obj: extract_text(item)
-            elif isinstance(obj, dict):
-                for val in obj.values(): extract_text(val)
-        extract_text(data)
-        all_text = " ".join(text_dump).replace("**", "").replace("#", "").replace("-", " ")
-        words = [w for w in clean_text.split() if w.strip()] if 'clean_text' in locals() else all_text.split()
-        return len(words)
-
-    def ai_prune_bullets(self, overflow_pages):
-        """Prunes bullets using AI as a last resort."""
-        log("AI", f"Invoking AI to prune content (Overflow pages: {overflow_pages})...")
+    def get_ai_exclusion_recommendations(self, overflow_pages):
+        log("AI", f"Requesting exclusion recommendations (Target overflow: {overflow_pages} pages)")
         
-        jd_context = ""
-        if self.jd_path and os.path.exists(self.jd_path):
-            with open(self.jd_path, 'r') as f:
-                jd_context = f"\n### JOB DESCRIPTION ###\n{f.read()[:2000]}..."
-
-        # If overflow is massive, programmatically drop the oldest work entry to save tokens/time
-        if overflow_pages > 5:
-             if "work" in self.current_json and len(self.current_json["work"]) > 3:
-                 log("WARN", "Massive overflow. Programmatically dropping oldest work entry.")
-                 self.current_json["work"].pop()
-                 return True
-             if "projects" in self.current_json and len(self.current_json["projects"]) > 3:
-                 log("WARN", "Massive overflow. Programmatically dropping oldest project entry.")
-                 self.current_json["projects"].pop()
-                 return True
-
         pruner_persona_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Orchestrator', 'personas', 'resume_pruner_persona.md')
-        
-        # Prepare the stdin for the gemini call
-        jd_persona_header = f"""---
-name: position description
-description: The full text of the job description to be used for relevance scoring.
----
-"""
+        system_prompt = ""
+        if os.path.exists(pruner_persona_path):
+             with open(pruner_persona_path, 'r') as f:
+                 system_prompt = f.read()
+
         jd_content = ""
         if self.jd_path and os.path.exists(self.jd_path):
             with open(self.jd_path, 'r') as f:
-                jd_content = f.read()
+                jd_content = f"### TARGET JOB DESCRIPTION ###\n{f.read()}\n\n"
 
-        # Combine the pruner persona, the JD persona, and the JD content for stdin
-        # This uses the shell piping technique to combine multiple inputs for the gemini tool
-        import shlex
-        safe_jd_content = shlex.quote(f"{jd_persona_header}\n{jd_content}")
-        gemini_stdin_content = f"cat {pruner_persona_path} <(echo -e {safe_jd_content})"
+        task = f"{jd_content}### MAGNITUDE ###\nThe resume is over the limit by {overflow_pages} pages. Provide enough exclusions to resolve this.\n\n### DRAFT RESUME JSON ###\n{json.dumps(self.current_json, indent=2)}"
         
-        # If the JSON is too large, it might fail. We only send the work and projects.
-        subset = {
-            "work": self.current_json.get("work", []),
-            "projects": self.current_json.get("projects", [])
-        }
-        
-        # Construct the task prompt
-        task_prompt = f"""You have been provided with the full candidate CV data in your session history. Now, review the following oversized resume and prune it according to your persona's rules.
-        
-### OVERSIZED RESUME (JSON) ###
-{json.dumps(subset)}
-"""
-        safe_task_prompt = shlex.quote(task_prompt)
+        raw_response = call_gemini(system_prompt, task)
+        if not raw_response: return []
 
-        # Build the final gemini command
-        cmd = [
-            "bash",
-            "-c",
-            f"{gemini_stdin_content} | gemini --resume {os.environ.get('MASTER_SESSION_ID')} -p {safe_task_prompt}"
-        ]
-        
-        result_text = ""
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            result_text = result.stdout
-        except subprocess.CalledProcessError as e:
-            log("ERROR", f"AI Pruning Gemini call failed: {e.stderr}")
-            return False
-        except Exception as e:
-            log("ERROR", f"An unexpected error occurred during AI Pruning: {e}")
-            return False
-        
-        if result_text:
-            import re
-            match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
-            parsed = None
-            if match:
-                try: parsed = json.loads(match.group(1))
-                except: pass
-            if not parsed:
-                try: parsed = json.loads(result_text)
-                except: pass
-                
-            if parsed:
-                if "work" in parsed:
-                    self.current_json["work"] = parsed["work"]
-                if "projects" in parsed:
-                    self.current_json["projects"] = parsed["projects"]
-                return True
+        # Extract JSON
+        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response, re.DOTALL)
+        parsed = None
+        if match:
+            try: parsed = json.loads(match.group(1))
+            except: pass
+        if not parsed:
+            try: 
+                start = raw_response.find('{')
+                end = raw_response.rfind('}')
+                if start != -1 and end != -1:
+                    parsed = json.loads(raw_response[start:end+1])
+            except: pass
             
-        log("ERROR", "AI Pruning failed to return valid JSON.")
-        return False
+        if parsed and "exclusions" in parsed:
+            return parsed["exclusions"]
+        return []
 
-    def remove_section(self, section_name):
-        """Programmatically removes a section from the JSON."""
-        if section_name in self.current_json:
-            log("ACTION", f"Removing section: {section_name}")
-            del self.current_json[section_name]
-            return True
+    def execute_exclusion(self, op):
+        op_type = op.get("type")
+        target_section = op.get("target_section")
+        
+        if op_type == "remove_section" and target_section:
+            if target_section in self.current_json:
+                log("EXCLUDE", f"Section '{target_section}' (Reason: {op.get('reason')})")
+                del self.current_json[target_section]
+                return True
+
+        elif op_type == "remove_job":
+            target_company = op.get("target_company")
+            if "work" in self.current_json:
+                for i, job in enumerate(self.current_json["work"]):
+                    if target_company and target_company.lower() in job.get("name", "").lower():
+                        log("EXCLUDE", f"Job '{target_company}' (Reason: {op.get('reason')})")
+                        self.current_json["work"].pop(i)
+                        return True
+        
+        elif op_type == "remove_project":
+            target_proj = op.get("target_project")
+            if "projects" in self.current_json:
+                for i, proj in enumerate(self.current_json["projects"]):
+                    if target_proj and target_proj.lower() in proj.get("name", "").lower():
+                        log("EXCLUDE", f"Project '{target_proj}' (Reason: {op.get('reason')})")
+                        self.current_json["projects"].pop(i)
+                        return True
+
+        elif op_type == "remove_bullet":
+            target_company = op.get("target_company")
+            bullet_text = op.get("bullet_text", "")
+            if "work" in self.current_json and bullet_text:
+                for job in self.current_json["work"]:
+                    if target_company and target_company.lower() not in job.get("name", "").lower():
+                        continue
+                    if "highlights" in job:
+                        for i, highlight in enumerate(job["highlights"]):
+                            if bullet_text[:30].lower() in highlight.lower():
+                                log("EXCLUDE", f"Bullet from '{target_company}' (Reason: {op.get('reason')})")
+                                job["highlights"].pop(i)
+                                return True
         return False
 
     def try_layout_optimization(self):
         """Step-up Layout Optimization. Start at minimums, increase until overflow."""
-        # Sorted from smallest to largest
         scales = [0.99, 1.0]
         margins = ["0.5in", "0.6in", "0.7in", "0.8in", "0.9in", "1.0in"]
 
-        # Baseline check (minimum settings)
         min_scale = scales[0]
         min_margin = margins[0]
         
-        try:
-            self.render(min_scale, min_margin, [])
-            baseline_pages = self.get_pdf_page_count(self.output_pdf_path)
-            log("INFO", f"Baseline check: Scale {min_scale}, Margin {min_margin} -> Pages: {baseline_pages}")
-        except Exception as e:
-            log("WARN", f"Baseline render failed: {e}")
-            return None
+        self.render(min_scale, min_margin, [])
+        baseline_pages = self.get_pdf_page_count(self.output_pdf_path)
+        log("INFO", f"Baseline check: Scale {min_scale}, Margin {min_margin} -> Pages: {baseline_pages}")
 
         if baseline_pages > self.max_pages:
-            return None # Does not fit even at minimum settings
+            return None # Does not fit
             
-        # It fits! Now step-up to find the best looking (largest) settings
         last_valid = {"scale": min_scale, "margin": min_margin, "hidden_sections": []}
         
         for scale in scales:
             for margin in margins:
-                # Skip the baseline we just checked
-                if scale == min_scale and margin == min_margin:
-                    continue
+                if scale == min_scale and margin == min_margin: continue
                     
-                try:
-                    self.render(scale, margin, []) 
-                    current_pages = self.get_pdf_page_count(self.output_pdf_path)
-                    log("INFO", f"Step-Up check: Scale {scale}, Margin {margin} -> Pages: {current_pages}")
-                    
-                    if current_pages <= self.max_pages:
-                        last_valid = {"scale": scale, "margin": margin, "hidden_sections": []}
-                    else:
-                        # We hit the overflow limit. Return the last valid settings.
-                        log("SUCCESS", f"Overflow at Scale {scale}, Margin {margin}. Reverting to Scale: {last_valid['scale']}, Margin: {last_valid['margin']}")
-                        # Re-render with last valid before returning
-                        self.render(last_valid['scale'], last_valid['margin'], [])
-                        return last_valid
-                except Exception as e:
-                    log("WARN", f"Render or page count failed at Scale {scale}, Margin {margin}: {e}")
-                    # If a render fails, we'll just stop stepping up and return last valid
+                self.render(scale, margin, []) 
+                current_pages = self.get_pdf_page_count(self.output_pdf_path)
+                log("INFO", f"Step-Up check: Scale {scale}, Margin {margin} -> Pages: {current_pages}")
+                
+                if current_pages <= self.max_pages:
+                    last_valid = {"scale": scale, "margin": margin, "hidden_sections": []}
+                else:
+                    log("SUCCESS", f"Overflow at Scale {scale}, Margin {margin}. Locking in: Scale {last_valid['scale']}, Margin {last_valid['margin']}")
                     self.render(last_valid['scale'], last_valid['margin'], [])
                     return last_valid
                     
-        # If we get through all of them and they all fit (e.g. it's a short resume)
-        log("SUCCESS", f"Max settings achieved with Scale: {last_valid['scale']}, Margin: {last_valid['margin']}")
-        # Ensure final render is the max settings
+        log("SUCCESS", f"Max settings achieved. Locking in: Scale {last_valid['scale']}, Margin {last_valid['margin']}")
         self.render(last_valid['scale'], last_valid['margin'], [])
         return last_valid
+
+    def micro_prune_orphans(self, pdf_path, margin, scale):
+        """Phase 3: Detects orphan words and uses AI to shorten the exact strings."""
+        orphans = detect_widows_and_orphans(pdf_path)
+        if not orphans:
+            log("INFO", "Phase 3 (Typesetting): No orphans detected. Typography is clean.")
+            return False
+
+        log("INFO", f"Phase 3 (Typesetting): Detected {len(orphans)} wrapped lines at locked layout. Invoking micro-pruning...")
+        
+        system_prompt = "You are a typesetting AI. Shorten the provided sentence to prevent line-wrapping by dropping the exact number of characters requested. Preserve all meaning and ATS keywords. Output ONLY the raw new string. No formatting, no explanations."
+        
+        json_str = json.dumps(self.current_json, indent=2)
+        changes = False
+        
+        for orphan in orphans:
+            orig = orphan['original_text']
+            target_save = orphan['chars_to_save']
+            
+            # Flexible exact match search
+            escaped_orig = re.escape(orig).replace(r'\ ', r'\s+')
+            match = re.search(escaped_orig, json_str)
+            if not match and len(orig) > 60:
+                 start_part = re.escape(orig[:30]).replace(r'\ ', r'\s+')
+                 end_part = re.escape(orig[-30:]).replace(r'\ ', r'\s+')
+                 match = re.search(f"{start_part}.*?{end_part}", json_str, re.DOTALL)
+            
+            if match:
+                exact_json_string = match.group(0)
+                task = f"Shorten this by {target_save + 3} to {target_save + 10} characters. It MUST be shorter. Original: {exact_json_string}"
+                
+                shortened = call_gemini(system_prompt, task, max_retries=2)
+                
+                if shortened and len(shortened) < len(exact_json_string):
+                    log("FIX", f"Orphan Pruned: '{exact_json_string[:30]}...' -> '{shortened[:30]}...' (Saved {len(exact_json_string) - len(shortened)} chars)")
+                    json_str = json_str.replace(exact_json_string, shortened)
+                    changes = True
+                else:
+                    log("WARN", f"AI failed to meaningfully shorten orphan: '{orig[:30]}...'")
+        
+        if changes:
+            try:
+                self.current_json = json.loads(json_str)
+                return True
+            except json.JSONDecodeError as e:
+                log("ERROR", f"Micro-pruning JSON decode error: {e}")
+                
+        return False
 
     def backup_json(self, suffix):
         """Creates a backup of the current JSON."""
@@ -310,76 +292,59 @@ description: The full text of the job description to be used for relevance scori
         log("INFO", f"Created backup: {os.path.basename(backup_path)}")
 
     def enforce(self):
-        log("START", f"Enforcing {self.max_pages}-page limit for {self.base_name} (Bottom-Up Optimization)")
+        log("START", f"Enforcing {self.max_pages}-page limit for {self.base_name}")
         self.backup_json("pre_resize")
         
-        # --- PHASE 1 & 2: Loop Section Removal ---
-        # We try layout optimization first. If fail, remove a section, try again.
-        
-        # Make a copy of the list so we can pop from it
-        sections_to_remove = list(self.REMOVABLE_SECTIONS)
-        
-        # We allow one "Layout Pass" before any removal
-        # Then N passes where we remove one section each time
-        
-        max_attempts = len(sections_to_remove) + 1
-        
-        for i in range(max_attempts):
-            log("PHASE", f"Layout Optimization Pass {i+1}...")
-            
-            winning_settings = self.try_layout_optimization()
-            if winning_settings:
-                self.save_result(winning_settings)
-                return True
-            
-            log("INFO", "Baseline optimization failed (content too long).")
-
-            # If we are here, layout failed. Remove a section.
-            if sections_to_remove:
-                next_section = sections_to_remove.pop(0)
-                self.backup_json(f"pre_remove_{next_section}")
-                if not self.remove_section(next_section):
-                    # Section didn't exist, loop immediately to try next
-                    continue
-            else:
-                log("WARN", "All removable sections gone. Still over limit.")
-                break
-
-        # --- PHASE 3: AI Pruning (Last Resort) ---
-        log("PHASE", "Invoking AI Bullet Pruning (Last Resort)...")
-        self.backup_json("pre_ai_pruning")
-        
-        # Try AI pruning in a loop (up to 5 times)
-        for attempt in range(5):
-            self.render(0.99, "0.5in", []) # baseline check
+        # --- PHASE 1 & 2: Magnitude-Aware Multi-Pass Exclusions ---
+        loop_limit = 5
+        for attempt in range(loop_limit):
+            self.render(0.99, "0.5in", [])
             current_pages = self.get_pdf_page_count(self.output_pdf_path)
+            
             if current_pages <= self.max_pages:
-                # Need to try layout optimization to step-up
-                winning_settings = self.try_layout_optimization()
-                if winning_settings:
-                    self.save_result(winning_settings)
-                    return True
+                log("PASS", "Document fits baseline constraints.")
                 break
                 
-            overflow_pages = current_pages - self.max_pages
-            if self.ai_prune_bullets(overflow_pages):
-                # After pruning, retry layout optimization
-                winning_settings = self.try_layout_optimization()
-                if winning_settings:
-                    self.save_result(winning_settings)
-                    return True
-            else:
-                break # AI failed to produce JSON
+            overflow = current_pages - self.max_pages
+            log("PHASE", f"Macro-Layout: Over limit by {overflow} pages. Requesting exclusions...")
+            
+            exclusions = self.get_ai_exclusion_recommendations(overflow)
+            if not exclusions:
+                log("FAIL", "Recommender failed to provide exclusions.")
+                return False
+                
+            # Apply all exclusions in batch
+            any_success = False
+            for op in exclusions:
+                if self.execute_exclusion(op):
+                    any_success = True
+                    
+            if not any_success:
+                log("FAIL", "Failed to apply any recommended exclusions. Aborting to prevent loop.")
+                return False
+        else:
+            log("FAIL", "Max exclusion iterations reached. Could not enforce limit.")
+            return False
+            
+        # --- PHASE 3: Locked Layout Typesetting ---
+        log("PHASE", "Locking Layout Constraints...")
+        winning_settings = self.try_layout_optimization()
+        if not winning_settings:
+            log("ERROR", "Unexpected layout failure after baseline pass.")
+            return False
+            
+        # --- PHASE 4: Final Polish (Orphans) ---
+        if self.micro_prune_orphans(self.output_pdf_path, winning_settings["margin"], winning_settings["scale"]):
+            log("PHASE", "Final Polish: Re-rendering with shortened strings.")
+            self.render(winning_settings["scale"], winning_settings["margin"], [])
 
-        log("FAIL", "Could not enforce page limit.")
-        return False
+        self.save_result(winning_settings)
+        return True
 
     def save_result(self, settings):
-        # Save final JSON
         with open(self.json_path, 'w') as f:
             json.dump(self.current_json, f, indent=2)
 
-        # Save settings
         settings_path = self.json_path.replace(".json", ".render_settings.json")
         with open(settings_path, 'w') as f:
             json.dump(settings, f, indent=2)

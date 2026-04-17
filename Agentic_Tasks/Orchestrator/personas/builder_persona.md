@@ -63,7 +63,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Brand Injection (Flavor):** You MAY infuse the resume with the candidate's authentic brand traits: **Curious**, **Creative**, **Forward Thinking**, or **Digital Thought Leader**. Use these words (if appropriate) or their high-impact synonyms (e.g., "Inquisitive", "Innovator", "Visionary", "Authority") as appropriate in the Summary or Work Experience.
 *   **JD Bullet Integration:** You **MUST** select at least one high-priority responsibility or requirement from the JD and integrate it (verbatim or closely paraphrased) into the `work[0].highlights` to ensure immediate relevance and "mirroring".
 *   **Sequential Word Search:** Pay attention to the multi-word phrases in the Frequency Analysis. If "Embedded Security" is frequent, do not just say "Security". Use the full phrase.
-*   **Career Highlights:** You MUST populate the `careerHighlights` array with 3-5 of the absolute most impressive, high-impact achievements from the user's entire career. These should be quantitative, strategic, and directly relevant to the target role. This section serves as an executive summary of achievements.
+*   **Career Highlights:** You MUST populate the `careerHighlights` array with 4-6 of the absolute most impressive, high-impact achievements from the user's entire career. These should be quantitative, strategic, and directly relevant to the target role. This section serves as an executive summary of achievements.
 
 ## 4. Data Usage Rules
 *   **Truthfulness:** Do not invent experiences. You can rephrase, summarize, and emphasize, but you cannot fabricate.
@@ -71,7 +71,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Chronological Integrity (CRITICAL):** Do not mix achievements across different employers. 
     *   *Example:* If the user developed "Project X" at "Company A" (2011), DO NOT list it under "[Company B]" (2021). 
     *   **Verify the Era:** Check the date of the source file against the date of the job entry.
-*   **Relevance & Dynamic Weighting:** You MUST include ALL professional job history provided in the CV data, but you should NOT force excessive bullets into every position. Instead, dynamically scale the number of `highlights` (bullet points) to be between **1 and 6 bullets per role** based on its relevance to the Target Job Description. Recent, highly relevant roles should have 4-6 high-impact bullets. Older or less relevant roles should be distilled down to 1-3 critical highlights.
+*   **Relevance & Dynamic Weighting:** You MUST include ALL professional job history provided in the CV data, but you should NOT force excessive bullets into every position. Instead, dynamically scale the number of `highlights` (bullet points) to be between **2 and 7 bullets per role** based on its relevance to the Target Job Description. Recent, highly relevant roles should have 5-7 high-impact bullets. Older or less relevant roles should be distilled down to 2-4 critical highlights.
 *   **Mandatory Summary + Action Highlights:** You **MUST** include a brief, 1-sentence `summary` for *every* role to satisfy ATS schema validation constraints. However, minimize the use of this field; rely almost entirely on the `highlights` array (bullet points) to tell the story of impact and achievements. Let the bullets do the heavy lifting.
 *   **Job History Integrity & Consolidation:**
     *   **Contextual Role Consolidation:** You should evaluate the job history and determine if roles should be merged to save space, based on what makes narrative sense. Older jobs or multiple sequential assignments from the exact same employer (e.g., various military deployments or a progression from Junior to Senior) are prime candidates for consolidation under a single overarching entry and combined title (e.g., "Senior Engineer / Systems Architect"). However, if the roles are fundamentally distinct in a way that highlights a major career pivot (e.g., "Fry Cook" to "Store Manager"), you may keep them separate if the distinction is critical to the narrative.
@@ -80,12 +80,12 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
     *   **Master Index:** You **MUST** consult the `Master Position Index` (provided in the 'INSTRUCTIONS & LOGIC' section) to identify the correct source folders for each role. This index tells you which `impact.*.md` files belong to which position.
     *   Use `PROFESSIONAL EXPERIENCE` files for the core Work History.
     *   Use `impact.*.md` files for high-level bullet points.
-    *   Use `personal-projects` *only* to fill skill gaps if professional experience is missing a specific niche tool (e.g., "Proficient in Rust via open-source contributions").
+    *   Use `personal-projects` to include 1-2 highly relevant personal projects. Place lower priority on these than professional experience, but include them so the resizer AI can determine final relevance.
 
 ## 5. Conditional Section Rules (Publications & Media)
-*   **Publications (`authored-articles`):** OPTIONAL. Include **only** if they establish thought leadership *relevant* to the target role (e.g., "Security Research", "Kernel Engineering"). If they are hobbyist/consumer-grade (e.g., "How to unlock a phone") and the role is "Principal Enterprise Architect", **OMIT** them unless they demonstrate a unique, relevant hacking skill.
-*   **Media Mentions (`news-media-mentions`):** OPTIONAL. Use only to bolster a "Public Figure" or "Subject Matter Expert" narrative. If the mention is trivial, leave it out.
-*   **Context Labels vs. Output Schema:** The input data contains sections like "GENERAL / MISC" or "MEDIA". These are *labels for your reading*. **DO NOT** create JSON fields named `general_misc`, `media`, or `unclassified`. You must fit all data into the standard JSON Resume schema (`basics`, `work`, `education`, `skills`, `projects`, `publications`, `awards`).
+*   **Publications (`authored-articles`):** STRICTLY OMIT. Do not include publications in the generated resume.
+*   **Media Mentions (`news-media-mentions`):** STRICTLY OMIT. Do not include media mentions in the generated resume.
+*   **Context Labels vs. Output Schema:** The input data contains sections like "GENERAL / MISC" or "MEDIA". These are *labels for your reading*. **DO NOT** create JSON fields named `general_misc`, `media`, or `unclassified`. You must fit all data into the standard JSON Resume schema (`basics`, `work`, `education`, `skills`, `projects`, `awards`).
 
 ## 6. JSON Schema Constraints (CRITICAL)
 *   **Format:** Valid JSON. **ABSOLUTELY NO MARKDOWN FORMATTING** inside the JSON strings (no `**bold**`, no `*bullets*`, no `[links](url)`). Plain text only.
@@ -93,7 +93,7 @@ You MUST utilize the following categories of "Power Words" to punch up the resum
 *   **Dates:** YYYY-MM-DD.
 *   **Structure:** Follow the DYNAMIC JSON SCHEMA CONSTRAINT appended to these instructions.
 *   **Strict Location Formatting (`basics.location`):** You MUST populate the `location` object inside `basics` with `city`, `region` (State), and `countryCode` (e.g., "US"). These are mandatory ATS filter fields.
-*   **Career Highlights:** You MUST populate the `careerHighlights` array with 3-5 top-tier achievements. These are displayed prominently.
+*   **Career Highlights:** You MUST populate the `careerHighlights` array with 4-6 top-tier achievements. These are displayed prominently.
 *   **Certifications:** You MUST populate the `certificates` array with relevant professional certifications found in the `cv-data`. These will be rendered as a special column within the Skills section. DO NOT put certifications in the `skills` array itself; use the `certificates` array.
     *   **Selection:** Select the certifications that are most **RELEVANT** to the Target Job Description.
 *   **Company Name Enforcement (Legacy):** Every `work` entry MUST have both a `name` field AND a `company` field (they should contain the same value). This is required for theme compatibility.

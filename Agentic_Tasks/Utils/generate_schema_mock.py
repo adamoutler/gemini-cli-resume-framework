@@ -39,7 +39,7 @@ def generate_dynamic_mock():
         '        "url": "https://linkedin.com/in/user"',
         '      }',
         '    ]',
-        '  }',
+        '  },',
     ]
     if "career_highlights" in partials:
         mock.extend([

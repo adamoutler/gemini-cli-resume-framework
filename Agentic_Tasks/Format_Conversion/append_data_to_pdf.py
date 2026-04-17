@@ -6,7 +6,7 @@ from pypdf import PdfWriter
 
 def md_to_pdf(md_path, temp_pdf_path):
     # 1. Read MD
-    with open(md_path, 'r', encoding='utf-8') as f:
+    with open(md_path, 'r', encoding='utf-8', errors='ignore') as f:
         text = f.read()
     
     # 2. Convert to HTML
