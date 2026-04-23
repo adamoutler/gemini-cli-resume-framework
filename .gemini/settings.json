@@ -4,5 +4,20 @@
   },
   "experimental": {
     "enableAgents": true
+  },
+  "hooks": {
+    "BeforeAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "joplin-memory-injector",
+            "type": "command",
+            "command": "$GEMINI_PROJECT_DIR/.gemini/hooks/joplin-rag.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
   }
 }

@@ -19,3 +19,7 @@ resumes/*_AUDIT_REPORT.md
 resumes/*_audit_result.json
 resumes/*_REGRESSION_REPORT.md
 .geminiignore
+
+# Settings overrides (Keep norag, ignore others)
+.settings/*
+!.settings/norag

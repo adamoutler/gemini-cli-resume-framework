@@ -1,0 +1,2 @@
+This file disables the Joplin RAG hook when present.
+Delete or rename this file to enable automatic context injection from your Joplin semantic memory.
