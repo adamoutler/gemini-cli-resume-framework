@@ -35,5 +35,5 @@ Every file must start with a JSON FrontMatter block for indexing:
 ## Validation
 Run the linter after any modification:
 ```bash
-python3 Codex_Tasks/Maintenance/lint_cv_data.py
+python3 Agentic_Tasks/Maintenance/lint_cv_data.py
 ```

@@ -10,7 +10,7 @@ This workflow automates the process of creating a tailored JSON Resume, HTML/PDF
 **WARNING: RESOURCE INTENSIVE OPERATION**
 - This is a time and token expensive operation.
 - **It can take between 15 to 45 minutes for the thorough process to be completed.**
-- It involves multiple operations with 8 separate Codex-based AI Agents.
+- It involves multiple operations with 8 separate Gemini-based AI Agents.
 - **INSTRUCTION FOR AI:** You MUST explicitly warn the user about this 15-45 minute execution time *before* you start the orchestrator or immediately upon starting it, so they know what to expect.
 
 ## Prerequisites
@@ -23,7 +23,7 @@ This workflow automates the process of creating a tailored JSON Resume, HTML/PDF
 Run the orchestrator using the following command. Do not background this process, use `timeout`, or attempt to `tail` logs. Simply execute the script and wait for it to complete. 
 
 ```bash
-./venv/bin/python3 Codex_Tasks/Orchestrator/resume_orchestrator.py --jd <path_to_job_description.txt>
+./venv/bin/python3 Agentic_Tasks/Orchestrator/resume_orchestrator.py --jd <path_to_job_description.txt>
 ```
 
 **Optional Arguments:**

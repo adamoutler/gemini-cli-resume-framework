@@ -17,7 +17,7 @@ Run the local setup script using the shell execution tool:
 ## Phase 2: Security Assessment
 Analyze the output of the `setup.sh` script. 
 
-If the script outputs `[CODEX_HOOK: SUBMODULE_RECOMMENDED]`, you MUST pause execution and initiate the Submodule Creation Walkthrough.
+If the script outputs `[GEMINI_HOOK: SUBMODULE_RECOMMENDED]`, you MUST pause execution and initiate the Submodule Creation Walkthrough.
 
 ### Submodule Creation Walkthrough
 If the hook is detected, speak to the user directly with a strong security warning. Explain that `cv-data` will house all their personal information (phone, address, detailed work history) and it is incredibly dangerous to leave it in the main repository, where an accidental `git push` could publish it to GitHub.

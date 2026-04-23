@@ -17,7 +17,7 @@ This skill prepares the candidate ([Your Name]) for a high-stakes interview by g
 Run the interview prep orchestrator using the following command:
 
 ```bash
-./venv/bin/python3 Codex_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>"
+./venv/bin/python3 Agentic_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>"
 ```
 
 ## Strategy: The "Dating" Metaphor

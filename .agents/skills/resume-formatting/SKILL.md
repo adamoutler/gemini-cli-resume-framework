@@ -28,9 +28,9 @@ Consult these files for deep validation and formatting rules:
 
 - **Theme:** The only authorized theme is **'stackoverflow'**. Other themes (paper, flat, etc.) are deprecated.
 - **Format:** The final deliverable is always a **PDF**. HTML is used as an intermediate step for rendering.
-- **Page Limits:** Resumes should be optimized for length (enforced via `Codex_Tasks/Maintenance/enforce_page_limit.py` during orchestration).
+- **Page Limits:** Resumes should be optimized for length (enforced via `Agentic_Tasks/Maintenance/enforce_page_limit.py` during orchestration).
 
 ## Maintenance Tools
 
-- `Codex_Tasks/Maintenance/lint_cv_data.py`: Check for errors in the source CV data.
-- `Codex_Tasks/Resume_Audit/fix_resume_structure.py`: Repair structural issues in JSON files.
+- `Agentic_Tasks/Maintenance/lint_cv_data.py`: Check for errors in the source CV data.
+- `Agentic_Tasks/Resume_Audit/fix_resume_structure.py`: Repair structural issues in JSON files.
