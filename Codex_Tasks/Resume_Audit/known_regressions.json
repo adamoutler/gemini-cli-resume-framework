@@ -1,0 +1,72 @@
+[
+  {
+    "id": "REG-001",
+    "name": "Email Formatting - No Spaces",
+    "description": "Emails must not contain spaces. This causes parsing errors and looks unprofessional.",
+    "severity": "CRITICAL",
+    "check_type": "regex",
+    "pattern": "^[^\\s]+@[^\\s]+\\.[^\\s]+$",
+    "target_field": "basics.email",
+    "error_message": "Email address contains spaces or invalid characters."
+  },
+  {
+    "id": "REG-002",
+    "name": "Email Formatting - Acronym Usage",
+    "description": "Email aliases should be concise acronyms (e.g., 'PSE') not full titles (e.g., 'Principal_Software_Engineer') to prevent excessive length.",
+    "severity": "WARNING",
+    "check_type": "heuristic",
+    "target_field": "basics.email",
+    "condition": "len(value.split('@')[0]) < 35",
+    "error_message": "Email alias is too long (>35 chars). Likely using full title instead of acronym."
+  },
+  {
+    "id": "REG-003",
+    "name": "No Markdown Formatting",
+    "description": "Resume fields must be plain text. Markdown (bold, italics, links) causes rendering errors in JSON Resume themes.",
+    "severity": "CRITICAL",
+    "check_type": "regex",
+    "pattern": "^(?!.*(\\*\\*|__|`|\\[.*\\]\\(.*\\))).*$",
+    "target_field": "work.highlights",
+    "error_message": "Markdown formatting detected (bold, italics, or links). Use plain text only."
+  },
+  {
+    "id": "REG-004",
+    "name": "Missing Company Name",
+    "description": "Every work entry must have a 'name' field indicating the employer.",
+    "severity": "CRITICAL",
+    "check_type": "heuristic",
+    "target_field": "work",
+    "condition": "all(job.get('name') for job in value)",
+    "error_message": "One or more work entries are missing the 'name' (Company) field."
+  },
+  {
+    "id": "REG-005",
+    "name": "Profile URL Enforcement",
+    "description": "Profile usernames must be full URLs to ensure they print correctly.",
+    "severity": "CRITICAL",
+    "check_type": "regex",
+    "pattern": "^https?://.*",
+    "target_field": "basics.profiles.username",
+    "error_message": "Profile username is not a full URL (must start with http/https)."
+  },
+  {
+    "id": "REG-006",
+    "name": "Skill Section Layout Alignment",
+    "description": "The skills array must contain exactly 2 or 5 categories to align with the certifications column for a balanced 3 or 6 column layout.",
+    "severity": "CRITICAL",
+    "check_type": "heuristic",
+    "target_field": "skills",
+    "condition": "len(value) == 2 or len(value) == 5",
+    "error_message": "Skills array length must be exactly 2 or 5 to ensure layout alignment."
+  },
+  {
+    "id": "REG-007",
+    "name": "Concise Highlights - 105 Char Limit",
+    "description": "Each highlight bullet must be 105 characters or less to prevent line-wrapping in the rendered PDF.",
+    "severity": "CRITICAL",
+    "check_type": "heuristic",
+    "target_field": "work.highlights",
+    "condition": "all(len(h) <= 105 for h in value)",
+    "error_message": "One or more highlights exceed the 105-character limit. Rewrite for brevity."
+  }
+]
