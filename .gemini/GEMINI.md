@@ -7,6 +7,13 @@ This repository is a structured database of professional experience. It uses aut
 - **`Agentic_Tasks/`**: Automated workflows and tools.
 - **`cv-data/resumes/`**: Output directory for generated artifacts.
 
+## Agent Context & Joplin RAG Integration
+This repository utilizes an optional Retrieval-Augmented Generation (RAG) hook that automatically queries a local Joplin memory server to inject semantic context into your prompt stream before processing.
+- **RAG Kill Switch (`.settings/norag`)**: The automatic injection of Joplin context is controlled by the presence of the `.settings/norag` file.
+  - If `.settings/norag` **exists**, the RAG hook is disabled and context is kept clean.
+  - If `.settings/norag` is **deleted**, the RAG hook is active and Joplin notes will be appended to user prompts.
+- As an agent, you must respect this switch and you are authorized to create or delete `.settings/norag` if the user complains about context bloat or requests access to their Joplin memory.
+
 ## Prerequisites
 - **Node.js**: Required for `resume-cli`.
 - **Python 3**: Use `./venv/bin/python3` for all scripts.
