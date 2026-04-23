@@ -6,7 +6,7 @@ This repository is a structured database of professional experience. It uses aut
 - **`cv-data/`**: The central markdown database (private).
 - **`Codex_Tasks/`**: Automated workflows and tools.
 - **`cv-data/resumes/`**: Output directory for generated artifacts.
-- **`Codex_Tasks/Codex_Skills/`**: Codex-specific mirror of the project skills.
+- **`.agents/skills/`**: Codex-specific mirror of the project skills.
 
 ## Operating Roles
 You operate in exactly four modes in this repository:
@@ -40,7 +40,7 @@ You operate in exactly four modes in this repository:
 ## Codex-Specific Rules
 - **Framework vs Submodule Split:** Treat this repository as a reusable framework and `cv-data/` as per-user content. Do not hard-code assumptions tied to any specific user when editing framework logic. If a rule or preference is user-specific, it should live in `cv-data/`.
 - **Email Rule Generalization:** For audits and generation, accept derived email addresses when they conform to explicit rules defined in source material. Never require a specific domain unless the user's `cv-data` explicitly requires it.
-- **Skill Source Priority:** Prefer the Codex mirror in `Codex_Tasks/Codex_Skills/` for project workflow guidance.
+- **Skill Source Priority:** Prefer the Codex mirror in `.agents/skills/` for project workflow guidance.
 - **Convergent Spiral Model:** The resume orchestrator is a convergent spiral. It intentionally begins with a high-recall, hyperbolic draft and then uses forensic audit, fixer, and reviewer loops to progressively constrain the resume into 100% supportable claims while preserving maximum relevant n-gram coverage for the target position. Interim overstatements, audit failures, and rejected claims are expected behavior during convergence.
 - **Orchestrator Execution Mode:** Treat the orchestrator as a self-managed, self-correcting, AI-driven convergent spiral. For long orchestrator runs, always print the full command and launch it once unless the user explicitly asks otherwise. After launch, your role is limited to waiting for the process to exit, then reading the final logs/artifacts and reacting at the end. Do not poll frequently, inspect logs mid-run, interrupt on first audit failure, restart it, or take any action based on intermediate output unless the user explicitly asks. The orchestrator should be allowed to manage its own internal retry, fixer, reviewer, and audit loops and will exit on its own when complete.
 - **Orchestrator Stop Condition:** Never stop an orchestrator run unless the user explicitly instructs you to stop it or it exceeds the expected 45-minute time limit.
@@ -53,12 +53,12 @@ You operate in exactly four modes in this repository:
 - **Python 3**: Use `./venv/bin/python3` for all scripts.
 - **Setup**: `npm install && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt`.
 - **ASCII Mandate**: All generated artifacts MUST be strictly plain ASCII.
-    - If a script fails with a Non-ASCII encoding error (Exit Code 1), you CAN and SHOULD autonomously fix the input file. 
+    - If a script fails with a Non-ASCII encoding error (Exit Code 1), you CAN and SHOULD autonomously fix the input file.
     - Sanitize all non-ASCII (smart quotes, accents, Cyrillic, em-dashes, etc.) to visual or transliterated ASCII equivalents (e.g., replace bullets with `*`, em-dashes with `-`, or use `unidecode`). Do this proactively if needed.
     - If no clear equivalent exists, contextually rephrase or omit the character/word to maintain professional flow and correctness.
 
 ## Core Mandate
-Always utilize the automated orchestrator for resume generation tasks. Do not build JSON files manually or manually execute steps of the pipeline (e.g., manual PDF rendering or cover letter generation) if the pipeline fails or times out. The pipeline is designed to generate all required outputs autonomously. 
+Always utilize the automated orchestrator for resume generation tasks. Do not build JSON files manually or manually execute steps of the pipeline (e.g., manual PDF rendering or cover letter generation) if the pipeline fails or times out. The pipeline is designed to generate all required outputs autonomously.
 - When a user provides a Job Description without mentioning a scheduled interview, interviewer, or date, ALWAYS automatically run the resume-orchestration pipeline. DO NOT ask if they want to run the interview-intelligence tool unless there is clear context of an upcoming interview.
 - Resume orchestration means: take the JD/PD, write it to a file if needed, start the orchestrator, wait, read the final result, and react only after the process exits.
 
@@ -86,13 +86,13 @@ This project utilizes specialized sub-agents for discrete, high-level tasks. Del
 
 ## Artifact Management
 - **MANDATORY**: ALL content, temporary or otherwise, MUST go in the `cv-data/` directory. `cv-data` should be the only place to output content.
-- Specifically, all generated artifacts, including Job Descriptions (.jd.txt), Resumes (JSON, HTML, PDF), Cover Letters, Audit Reports, and Interview Intelligence dossiers MUST be saved exclusively in the `cv-data/resumes/` directory. 
+- Specifically, all generated artifacts, including Job Descriptions (.jd.txt), Resumes (JSON, HTML, PDF), Cover Letters, Audit Reports, and Interview Intelligence dossiers MUST be saved exclusively in the `cv-data/resumes/` directory.
 - Generated resumes, archives, and submitted-application artifacts inside `cv-data/resumes/` are expected and should be preserved as historical records. Users rely on these artifacts to review prior submissions, compare claims over time, and reference what was previously sent to companies.
 - The repository root must be kept entirely clean of these files. Never generate or leave artifact files in the root folder.
 
 ## Code Modification
 - **FORBIDDEN**: No code modification is allowed without first entering /plan mode and allowing the user to approve the modification.
-- Small changes to this repo can have unintended side effects such as quality loss, regulatory/TAS compliance or downstream pipeline failures. 
+- Small changes to this repo can have unintended side effects such as quality loss, regulatory/TAS compliance or downstream pipeline failures.
 - Do not quickly fix a problem and rerun a script. This may fix your problem but cause others in the future.
 
 ## User Information
