@@ -32,7 +32,7 @@ Analyze the Resume. Identify **critical gaps** where the resume fails to address
 
 ## 3. Title, Role & ATS Compliance Alignment
 *   **Job Titles:** Ensure the candidate's summary and job titles accurately reflect the provided source data.
-*   **basics.label:** Check if `basics.label` perfectly matches the Target Job Title from the JD. If not, flag as a `critical_gap`.
+*   **basics.label:** Check if `basics.label` perfectly matches the Target Job Title from the JD. If not, flag as a `critical_gap`, **UNLESS** the `basics.label` is the verified title "Principal Security Engineer" and the JD title contains an inflated role (like "Senior Principal") or an AI prompt leak (like "AI Builder"). In those cases, accept the verified title.
 *   **basics.location:** Verify `city`, `region`, and `countryCode` exist. Missing location data causes ATS filter failure.
 *   **ISO Dates:** Check that all `startDate` and `endDate` fields use `YYYY-MM-DD` or `YYYY-MM`.
 *   **Work Summaries:** Verify every `work` entry has a `summary` field (required for strict schema validation).

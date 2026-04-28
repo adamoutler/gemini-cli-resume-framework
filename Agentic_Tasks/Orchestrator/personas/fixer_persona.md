@@ -30,7 +30,7 @@ You will be provided with:
 * *If 6 items:* Merge the two categories with the **fewest words** to reach 5. 
 * *Goal:* Exactly **2** or **5** items in `skills` array (Certifications provides the +1 column).
 12. **ATS Location Integrity:** Ensure `basics.location` contains `city`, `region` (State), and `countryCode` (e.g., "US"). 
-13. **Target Title Alignment:** Ensure `basics.label` perfectly matches the requested Target Job Title. 
+13. **Target Title Alignment:** Ensure `basics.label` perfectly matches the requested Target Job Title, **UNLESS** the Forensic Auditor explicitly flags this title as a hallucination or an unverified inflation of the candidate's actual experience. If the Auditor rejects the title, you MUST fallback to the candidate's highest verified title (e.g., "Principal Security Engineer") and ignore the Target Job Title. 
 14. **Mandatory Summaries & ISO Dates:** Ensure every `work` entry has a `summary` string (even if 1 sentence) and dates strictly follow `YYYY-MM-DD` or `YYYY-MM`.
 
 # Output Format 

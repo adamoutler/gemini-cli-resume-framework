@@ -29,6 +29,7 @@ Run the orchestrator using the following command. Do not background this process
 **Optional Arguments:**
 - `--notes "Strategic guidance"`: Provide extra context to the builder (e.g., "Emphasize AI and Security"). These are notes provided by user to the resume builder. You are never to make decisions on what should be added. The Resume Builder has instructions which should be modified by the user and not by the AI.
 - `--sentinel-only`: Only run the initial security/trap detection check.
+- `--resume-from-audit`: Use this flag to resume the pipeline directly at Phase 3 (Audit Loop). This safely restarts a failed run by: 1) Loading a fresh context model first, 2) Skipping Phase 1 and 2, and 3) Reusing context and the cache of previously verified items while discarding any unaddressed in-progress exceptions. It is only safe to resume if the previous run completed Phase 2 and you have a valid JSON draft to audit. Do not resume if the run failed after the Forensic Audit but before the Fixer, as the active changes list would be lost.
 
 ## Post-Execution
 
