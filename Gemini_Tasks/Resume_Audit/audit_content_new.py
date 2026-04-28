@@ -188,7 +188,7 @@ def init_session(context_text):
     """Initializes a local master session if one is not provided."""
     init_prompt = f"{context_text}\n\n## SYSTEM INSTRUCTION\n1. Ingest the documents above.\n2. Do not output any content yet.\n3. Reply only with: 'ACK'." 
     
-    cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
+    cmd = ["gemini", "-e", "", "--model", MODEL, "--output-format", "text"]
     try:
         subprocess.run(cmd, input=init_prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
         list_cmd = "gemini --list-sessions"
@@ -245,7 +245,7 @@ def init_session_pool(context_text, count, parent_session_id=None):
 MAX_RETRIES = 5
 
 def call_agent(prompt, session_id=None):
-    cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
+    cmd = ["gemini", "-e", "", "--model", MODEL, "--output-format", "text"]
     if session_id:
         cmd.extend(["--resume", session_id])
 

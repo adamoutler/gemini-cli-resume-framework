@@ -18,7 +18,7 @@ def log(message):
 def find_session_file_by_id(session_id):
     """Searches for the session JSON file by ID in likely locations."""
     prefix = session_id[:8]
-    filename_pattern = f"*{prefix}*.json"
+    filename_pattern = f"*{prefix}*.json*"
     
     search_paths = []
     
@@ -64,7 +64,7 @@ def init_master_session(cv_context, jd_text, model=MODEL):
         "3. Reply only with: 'ACK'."
     )
     
-    cmd = ["gemini", "--model", model, "-p", "reply with OK", "--output-format", "text"]
+    cmd = ["gemini", "-e", "", "--model", model, "-p", "reply with OK", "--output-format", "text"]
     
     backoff_times = [20, 60, 180, 600]
     MAX_RETRIES = 5
@@ -142,21 +142,33 @@ def fork_session(master_id):
     
     timestamp = time.strftime("%Y-%m-%dT%H-%M")
     dst_prefix = worker_id[:8]
-    dst_filename = f"session-{timestamp}-{dst_prefix}.json"
+    ext = '.jsonl' if src_file.endswith('.jsonl') else '.json'
+    dst_filename = f"session-{timestamp}-{dst_prefix}{ext}"
     dst_file = os.path.join(session_dir, dst_filename)
     
     try:
+        lines = []
         with open(src_file, 'r') as f:
-            data = json.load(f)
+            for line in f:
+                if line.strip():
+                    lines.append(json.loads(line))
         
-        # Update Session ID and Timestamp
-        data['sessionId'] = worker_id
-        data['lastUpdated'] = time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-        
-        with open(dst_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        # If it's a single dictionary (old format) or list of dicts (jsonl)
+        if isinstance(lines[0], dict) and 'sessionId' in lines[0]:
+            lines[0]['sessionId'] = worker_id
+            lines[0]['lastUpdated'] = time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
             
-        return worker_id
+            with open(dst_file, 'w') as f:
+                if src_file.endswith('.jsonl'):
+                    for obj in lines:
+                        f.write(json.dumps(obj) + '\n')
+                else:
+                    json.dump(lines[0], f, indent=2)
+            return worker_id
+        else:
+            log("Unrecognized session file format.")
+            return None
+            
     except Exception as e:
         log(f"Error forking session: {e}")
         return None
