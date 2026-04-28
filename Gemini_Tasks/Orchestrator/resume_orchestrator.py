@@ -47,7 +47,7 @@ def call_gemini(persona_header, user_task, session_id=None):
         f"{jd_text}\n\n"
         f"# EXECUTION ORDER\n{user_task}"
     )
-    cmd = ["gemini", "--model", MODEL, "--output-format", "text"]
+    cmd = ["gemini", "-e", "", "--model", MODEL, "--output-format", "text"]
     
     backoff_times = [20, 60, 180, 600]
     for attempt in range(MAX_RETRIES):

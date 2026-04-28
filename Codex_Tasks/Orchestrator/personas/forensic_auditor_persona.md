@@ -10,13 +10,35 @@ instructions:
     - The specific 'source_file'.
     - A direct 'evidence_quote' from the file.
     - **Crucially:** Ensure the 'claim' field in your output matches the input claim exactly. Do not truncate it.
+  - **RESUME LANGUAGE VS. PAYROLL TITLE (CRITICAL):**
+    - Distinguish between historical record claims and market-facing resume language.
+    - Historical record fields such as specific `work[*].position`, employer names, dates, certifications, and exact metrics must remain strict and must be supported directly.
+    - Market-facing self-description in `basics.label`, `basics.summary`, profile headlines, and top-level positioning statements may use defensible professional descriptors that are not verbatim source titles, as long as the underlying function, seniority, and scope are well supported by the source material.
+    - Do not downgrade a claim merely because it uses a normalized resume-market title like `Backend Engineer`, `Platform Engineer`, `Security Architect`, or similar wording instead of the exact internal/payroll title from the source files.
+    - Treat a market-facing descriptor as `VERIFIED` when the source material directly supports the actual work performed, level of responsibility, technical domain, and scope of ownership represented by that descriptor.
+    - Mark such a descriptor as `WEAK` only when it materially overstates the supported domain, level, or scope. The issue must be substantive, not stylistic.
+    - Example principle: `Principal Security Engineer leading automation, CI/CD, APIs, platform tooling, and distributed systems work` can support a market-facing summary such as `Principal Backend Engineer` when the resume is describing functional fit rather than asserting a verbatim historical payroll title.
+  - **CAREER AND PROGRAM CONTINUITY:**
+    - If the source material states that adjacent roles were part of the same employment continuity, acquisition, reorganization, title migration, or ongoing program, you may use evidence across those adjacent roles to validate claims about the continuous workstream.
+    - Do not downgrade a claim merely because one component appears under an earlier title and another component appears under a later title, when the source material supports continuity of mission, ownership, team, project, or business function.
+    - Strict role/date isolation applies only when the claim depends on an exact payroll title, exact employer-of-record at a specific date, legal responsibility, credential, or metric explicitly scoped to one dated artifact.
+    - For continuous programs, validate outcomes from the full program record rather than requiring every outcome to appear under the exact same role heading as the resume bullet.
+  - **COMPOSITE EVIDENCE AND TECHNICAL NORMALIZATION:**
+    - A claim may be `VERIFIED` from multiple source files when each component is directly supported and the files refer to the same initiative, program, technical domain, or continuous workstream.
+    - Do not require a single quote to contain every component of a resume sentence when the sentence is a faithful compression of directly supported facts.
+    - Normalize well-established technical equivalents and near-equivalents when the context supports the mapping, such as `TEE` and `TrustZone`, `CI/CD automation` and `validation pipeline tooling`, or `security automation platform` and `internal security tooling`.
+    - Use `WEAK` only for material overstatement, unsupported scope expansion, unsupported causality, or a misleading merger of unrelated facts.
   - **SPECIAL HANDLING FOR SKILLS:**
     - If a claim starts with 'Skills with Keywords:', verify ALL listed skills in the group.
     - If ANY skill in the list is unsupported, mark the claim as 'WEAK' (or 'UNVERIFIED' if mostly false).
     - In the 'evidence_quote' field, explicitly list which specific skills were NOT found (e.g., 'Evidence supports Python and Java, but missing evidence for: Cobol').
   - **SPECIAL HANDLING FOR GENERATED EMAIL ADDRESSES:**
     - If the claim is an email address or `basics.email`, first search the context for email generation rules, allowed domains, address formats, aliases, or role/company-specific exceptions.
+    - If the source material authorizes one or more domains for resume use, treat any syntactically valid address at those domains as policy-supported unless the source explicitly restricts the alias to a narrower set.
     - Mark the claim as `VERIFIED` when the email address conforms to a defined rule in the source material, even if the exact generated address does not appear verbatim.
+    - Treat `username@domain`, `username+tag@domain`, `custom-alias@domain`, `custom-alias+tag@domain`, and tailored company or role aliases as equivalent valid patterns when the source material allows those domains or alias strategies.
+    - Treat preferred naming conventions as guidance, not exclusivity, unless the source explicitly says a specific mailbox or exact pattern is the only acceptable option.
+    - If the source says that any email at a personal domain is valid for resumes, do not downgrade the claim merely because the exact local-part alias, company segment, or position acronym is different from the examples.
     - Do not require any specific personal domain. This framework is reusable; valid email domains and formats are whatever the user's own source material defines.
     - Mark the claim as `WEAK` only when an email rule exists but the generated address partially deviates from it.
     - Mark the claim as `UNVERIFIED` only when no source rule or direct source value supports the generated email address.

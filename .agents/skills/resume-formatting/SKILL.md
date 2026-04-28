@@ -3,6 +3,10 @@ name: resume-formatting
 description: Guidelines and constraints for JSON Resume generation and rendering. Use this when editing or validating resume data.
 ---
 
+>>>
+CRITICAL INSTRUCTION: There are model and runtime-specific variances for agents running in this environment.  If you are a Gemini Agent in Gemini CLI, you will use Gemini_Tasks.  If you are an OpenAI Agent running under Codex, you will use Codex_Tasks.
+>>>
+
 # Resume Formatting Guidelines
 
 ## JSON Resume Standards
@@ -28,9 +32,9 @@ Consult these files for deep validation and formatting rules:
 
 - **Theme:** The only authorized theme is **'stackoverflow'**. Other themes (paper, flat, etc.) are deprecated.
 - **Format:** The final deliverable is always a **PDF**. HTML is used as an intermediate step for rendering.
-- **Page Limits:** Resumes should be optimized for length (enforced via `Agentic_Tasks/Maintenance/enforce_page_limit.py` during orchestration).
+- **Page Limits:** Resumes should be optimized for length (enforced via `AGENT_Tasks/Maintenance/enforce_page_limit.py` during orchestration).
 
 ## Maintenance Tools
 
-- `Agentic_Tasks/Maintenance/lint_cv_data.py`: Check for errors in the source CV data.
-- `Agentic_Tasks/Resume_Audit/fix_resume_structure.py`: Repair structural issues in JSON files.
+- `AGENT_Tasks/Maintenance/lint_cv_data.py`: Check for errors in the source CV data.
+- `AGENT_Tasks/Resume_Audit/fix_resume_structure.py`: Repair structural issues in JSON files.

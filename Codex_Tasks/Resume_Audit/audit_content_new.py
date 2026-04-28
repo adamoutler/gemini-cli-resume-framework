@@ -22,7 +22,7 @@ from utils.session_manager import fork_session # Import from shared manager
 # Configuration
 BATCH_SIZE = 5
 MAX_WORKERS = 3  # Workers for parallel auditing
-MODEL = "gpt-5.4" # Fast audit model
+MODEL = "gpt-5.5" # Forensic audit model
 CV_DATA_DIR = "./cv-data"
 TMP_DIR = "/tmp/codex_cv_audit"
 LOG_FILE = os.path.join(TMP_DIR, "audit_debug.log")

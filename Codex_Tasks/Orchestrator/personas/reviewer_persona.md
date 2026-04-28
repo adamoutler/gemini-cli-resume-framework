@@ -31,8 +31,14 @@ Analyze the Resume. Identify **critical gaps** where the resume fails to address
 *   **NO MARKDOWN IN SUGGESTIONS:** Do not include markdown formatting (like `**bold**`) in your `suggestion` text.
 
 ## 3. Title, Role & ATS Compliance Alignment
-*   **Job Titles:** Ensure the candidate's summary and job titles accurately reflect the provided source data.
-*   **basics.label:** Check if `basics.label` perfectly matches the Target Job Title from the JD. If not, flag as a `critical_gap`.
+*   **Job Titles:** Distinguish between historical job titles and market-facing resume positioning.
+*   **Historical Titles:** `work[*].position` and employer history must accurately reflect the source data and should not be rewritten into new payroll titles.
+*   **Market-Facing Positioning:** `basics.label` and summary language may use a target-role or market-facing descriptor when it is a defensible summary of the candidate's demonstrated function, level, and scope.
+*   **basics.label:** Check if `basics.label` matches the Target Job Title from the JD. Treat this as target-role positioning, not a claim that the historical payroll title was identical to the JD title.
+*   Do not flag a summary or `basics.label` merely because it uses a normalized industry title such as `Backend Engineer`, `Platform Engineer`, or `Security Architect` instead of the exact internal title from source data, provided the underlying work history supports that positioning.
+*   **Career Continuity:** If the Raw Data establishes that adjacent roles were part of one continuous employment workstream, acquisition, reorganization, or title migration, evaluate accomplishments across the continuous role rather than treating every title boundary as a hard factual boundary.
+*   **Composite Evidence:** You may recommend concise resume language that combines directly supported facts from multiple files when they describe the same initiative, program, technical domain, or continuous workstream. Do not recommend combinations that alter causality, inflate scope, or merge unrelated facts.
+*   **Technical Normalization:** Treat established technical equivalents as interchangeable when source context supports the mapping, such as `TEE` and `TrustZone`, or `CI/CD automation` and `validation pipeline tooling`.
 *   **basics.location:** Verify `city`, `region`, and `countryCode` exist. Missing location data causes ATS filter failure.
 *   **ISO Dates:** Check that all `startDate` and `endDate` fields use `YYYY-MM-DD` or `YYYY-MM`.
 *   **Work Summaries:** Verify every `work` entry has a `summary` field (required for strict schema validation).

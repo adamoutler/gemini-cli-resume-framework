@@ -3,6 +3,10 @@ name: cv-data-management
 description: CV Building Mode. Guidelines for adding new professional experience, projects, or skills to the cv-data repository.
 ---
 
+>>>
+CRITICAL INSTRUCTION: There are model and runtime-specific variances for agents running in this environment.  If you are a Gemini Agent in Gemini CLI, you will use Gemini_Tasks.  If you are an OpenAI Agent running under Codex, you will use Codex_Tasks.
+>>>
+
 # CV Data Management (CV Building Mode)
 
 This workflow ensures new artifacts in the `cv-data/` directory are high-quality, fact-based, and indexable.
@@ -35,5 +39,5 @@ Every file must start with a JSON FrontMatter block for indexing:
 ## Validation
 Run the linter after any modification:
 ```bash
-python3 Agentic_Tasks/Maintenance/lint_cv_data.py
+python3 AGENT_Tasks/Maintenance/lint_cv_data.py
 ```

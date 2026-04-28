@@ -3,6 +3,10 @@ name: interview-intelligence
 description: Interview Preparation Mode - Generates a strategic "Intelligence Pre-Interview Sheet" by synthesizing the Job Description, Company news, and Candidate history. Use this when preparing for an interview or researching a target role.
 ---
 
+>>>
+CRITICAL INSTRUCTION: There are model and runtime-specific variances for agents running in this environment.  If you are a Gemini Agent in Gemini CLI, you will use Gemini_Tasks.  If you are an OpenAI Agent running under Codex, you will use Codex_Tasks.
+>>>
+
 # Interview Intelligence Workflow
 
 This skill prepares the candidate ([Your Name]) for a high-stakes interview by generating a structured Markdown dossier that maps candidate assets to company pains.
@@ -17,7 +21,7 @@ This skill prepares the candidate ([Your Name]) for a high-stakes interview by g
 Run the interview prep orchestrator using the following command:
 
 ```bash
-./venv/bin/python3 Agentic_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>"
+./venv/bin/python3 AGENT_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>"
 ```
 
 ## Strategy: The "Dating" Metaphor

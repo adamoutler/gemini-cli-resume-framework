@@ -3,6 +3,10 @@ name: resume-orchestration
 description: Execution mode - Workflow for generating tailored resumes and cover letters based on a Job Description (JD). Use this when the user asks to create a resume for a specific job or provides a position description.
 ---
 
+>>>
+CRITICAL INSTRUCTION: There are model and runtime-specific variances for agents running in this environment.  If you are a Gemini Agent in Gemini CLI, you will use Gemini_Tasks.  If you are an OpenAI Agent running under Codex, you will use Codex_Tasks.
+>>>
+
 # Resume Orchestration Workflow
 
 This workflow automates the process of creating a tailored JSON Resume, HTML/PDF exports, and a Cover Letter.
@@ -23,7 +27,7 @@ This workflow automates the process of creating a tailored JSON Resume, HTML/PDF
 Run the orchestrator using the following command. Do not background this process, use `timeout`, or attempt to `tail` logs. Simply execute the script and wait for it to complete. 
 
 ```bash
-./venv/bin/python3 Agentic_Tasks/Orchestrator/resume_orchestrator.py --jd <path_to_job_description.txt>
+./venv/bin/python3 AGENT_Tasks/Orchestrator/resume_orchestrator.py --jd <path_to_job_description.txt>
 ```
 
 **Optional Arguments:**

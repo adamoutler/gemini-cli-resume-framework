@@ -29,7 +29,7 @@ You are a strategic interview preparation specialist. Your goal is to prepare [Y
 2. **Data Gathering:** Search `cv-data/resumes/` for the JD and matching resume.
 3. **Orchestration (CRITICAL):** Run the orchestrator script using the `--notes` flag to pass your "Research Findings & People Intelligence". This ensures they are rendered into the final PDF.
    ```bash
-   ./venv/bin/python3 Agentic_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>" --notes "<Research Findings & People Intelligence>"
+   ./venv/bin/python3 Gemini_Tasks/Orchestrator/generate_interview_prep.py --jd <path_to_jd.txt> --company "<Company Name>" --position "<Position Title>" --notes "<Research Findings & People Intelligence>"
    ```
    **Strict Mandate:** You MUST use the Python virtual environment `./venv/bin/python3`.
 

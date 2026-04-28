@@ -4,7 +4,7 @@ This repository is a structured database of professional experience. It uses aut
 
 ## Repository Overview
 - **`cv-data/`**: The central markdown database (private).
-- **`Agentic_Tasks/`**: Automated workflows and tools.
+- **`Gemini_Tasks/`**: Automated workflows and tools.
 - **`cv-data/resumes/`**: Output directory for generated artifacts.
 
 ## Agent Context & Joplin RAG Integration
