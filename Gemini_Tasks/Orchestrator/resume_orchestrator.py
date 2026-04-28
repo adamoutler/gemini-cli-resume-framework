@@ -212,7 +212,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
     workflow_start_time = time.time()
     # 0. Check Dependencies
     import sys
-    sys.path.append(os.path.join(PROJECT_ROOT, "Agentic_Tasks", "Utils"))
+    sys.path.append(os.path.join(PROJECT_ROOT, "Gemini_Tasks", "Utils"))
     import check_dependencies
     check_dependencies.main()
 
@@ -364,7 +364,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
         builder_persona = load_persona("builder_persona", ORCHESTRATOR_DIR)
 
         # Generate dynamic schema based on active theme
-        schema_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Utils/generate_schema_mock.py")
+        schema_script = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Utils/generate_schema_mock.py")
         try:
             schema_mock_result = subprocess.run([VENV_PYTHON, schema_script], capture_output=True, text=True, check=True)
             dynamic_schema = schema_mock_result.stdout.strip()
@@ -467,7 +467,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
         save_resume(resume_json, resume_filename, directory=jd_dir)
         validate_cmd = [
             VENV_PYTHON, 
-            os.path.join(PROJECT_ROOT, "Agentic_Tasks/Resume_Audit/validate_schema.py"),
+            os.path.join(PROJECT_ROOT, "Gemini_Tasks/Resume_Audit/validate_schema.py"),
             draft_path
         ]
         val_result = subprocess.run(validate_cmd, capture_output=True, text=True)
@@ -535,7 +535,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
         # We will need to update that script next.
         audit_cmd = [
             VENV_PYTHON,
-            os.path.join(PROJECT_ROOT, "Agentic_Tasks/Resume_Audit/audit_content_new.py"),
+            os.path.join(PROJECT_ROOT, "Gemini_Tasks/Resume_Audit/audit_content_new.py"),
             draft_path,
             "--output", draft_path.replace(".json", "_AUDIT_REPORT.md"),
             "--parent-session-id", MASTER_SESSION_ID # Pass the Master Session!
@@ -707,7 +707,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
     # PHASE 4: LAYOUT & CONTENT PRUNING (The "Fit" Loop)
     # =========================================================================
     log("PHASE 4/5", "Enforcing 2-page limit (Layout & Pruning Loop)...")
-    enforce_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Maintenance/enforce_page_limit.py")
+    enforce_script = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Maintenance/enforce_page_limit.py")
     enforce_pdf_path = draft_path.replace(".json", ".pdf")
     
     enforce_cmd = [VENV_PYTHON, enforce_script, draft_path, enforce_pdf_path, "--jd", jd_path]
@@ -762,7 +762,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
         
         # PDF (Apply sidecar settings from enforcer)
         pdf_path = draft_path.replace(".json", ".pdf")
-        pdf_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/html_to_pdf.py")
+        pdf_script = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/html_to_pdf.py")
         
         scale = 1.0
         margin = "0.4in"
@@ -796,7 +796,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
             f.write(cv_context)
             
         appendix_pdf_path = pdf_path.replace(".pdf", "_appendix.pdf")
-        append_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/append_data_to_pdf.py")
+        append_script = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/append_data_to_pdf.py")
         
         append_cmd = [VENV_PYTHON, append_script, pdf_path, full_cv_path, appendix_pdf_path]
         subprocess.run(append_cmd, check=True)
@@ -896,7 +896,7 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
             cl_pdf_path = cl_txt_path.replace(".txt", ".pdf")
             try:
                 # Use stdin to avoid creating a .md file on disk
-                defaults_file = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/pandoc_defaults.yaml")
+                defaults_file = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/pandoc_defaults.yaml")
                 cmd = [pandoc_exe, "-f", "markdown", "-o", cl_pdf_path]
                 if os.path.exists(defaults_file): cmd.extend(["--defaults", defaults_file])
                 

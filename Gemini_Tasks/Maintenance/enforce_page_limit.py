@@ -11,10 +11,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 RESUMES_DIR = os.path.join(PROJECT_ROOT, "cv-data", "resumes")
 VENV_PYTHON = os.path.join(PROJECT_ROOT, "venv", "bin", "python3")
-HTML_TO_PDF_SCRIPT = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/html_to_pdf.py")
+HTML_TO_PDF_SCRIPT = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/html_to_pdf.py")
 
 # Add Maintenance dir to path so we can import detect_orphans
-sys.path.append(os.path.join(PROJECT_ROOT, "Agentic_Tasks", "Maintenance"))
+sys.path.append(os.path.join(PROJECT_ROOT, "Gemini_Tasks", "Maintenance"))
 try:
     from detect_orphans import detect_widows_and_orphans
 except ImportError:

@@ -4,7 +4,7 @@ source venv/bin/activate
 run_orchestrator() {
     jd_file="$1"
     echo "Starting Orchestrator for $jd_file"
-    python3 Agentic_Tasks/Orchestrator/resume_orchestrator.py --jd "$jd_file"
+    python3 Gemini_Tasks/Orchestrator/resume_orchestrator.py --jd "$jd_file"
     echo "Finished $jd_file"
     echo "---------------------------------------------------"
 }

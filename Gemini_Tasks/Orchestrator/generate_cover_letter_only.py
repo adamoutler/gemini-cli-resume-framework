@@ -95,7 +95,7 @@ def generate_cover_letter(resume_path, jd_path):
         if pandoc_exe:
             cl_pdf_path = cl_txt_path.replace(".txt", ".pdf")
             try:
-                defaults_file = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/pandoc_defaults.yaml")
+                defaults_file = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/pandoc_defaults.yaml")
                 cmd = [pandoc_exe, "-f", "markdown", "-o", cl_pdf_path]
                 if os.path.exists(defaults_file): cmd.extend(["--defaults", defaults_file])
                 

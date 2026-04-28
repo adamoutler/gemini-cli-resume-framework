@@ -2,7 +2,7 @@ import os
 import sys
 
 # Add Orchestrator to path for context_loader
-ORCHESTRATOR_DIR = os.path.join(os.getcwd(), "Agentic_Tasks", "Orchestrator")
+ORCHESTRATOR_DIR = os.path.join(os.getcwd(), "Gemini_Tasks", "Orchestrator")
 sys.path.append(ORCHESTRATOR_DIR)
 
 from utils.context_loader import load_cv_context

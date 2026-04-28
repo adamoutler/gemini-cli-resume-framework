@@ -121,7 +121,7 @@ def main():
         
         # PDF Generation (MD -> HTML -> PDF for best emoji/formatting support)
         temp_html = os.path.join(jd_dir, f"{filename_base}.html")
-        html_to_pdf_script = os.path.join(PROJECT_ROOT, "Agentic_Tasks/Format_Conversion/html_to_pdf.py")
+        html_to_pdf_script = os.path.join(PROJECT_ROOT, "Gemini_Tasks/Format_Conversion/html_to_pdf.py")
         python_exe = sys.executable
 
         try:

@@ -158,7 +158,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Paths
-    # Assuming this script is running from Agentic_Tasks/Resume_Audit/
+    # Assuming this script is running from Gemini_Tasks/Resume_Audit/
     # We need to find the schema in related-requirements/ relative to project root
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(script_dir))
