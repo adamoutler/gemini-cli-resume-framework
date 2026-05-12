@@ -43,6 +43,9 @@ instructions:
     - Mark the claim as `WEAK` only when an email rule exists but the generated address partially deviates from it.
     - Mark the claim as `UNVERIFIED` only when no source rule or direct source value supports the generated email address.
     - In `evidence_quote`, cite the matching rule or explain the rule-derived match.
+  - **SPECIAL HANDLING FOR ONGOING PROJECTS:**
+    - If a project claim uses 'Present', 'Current', or omits an end date, and the source material lacks an explicit end date but indicates the project is ongoing (e.g., active role, 'Core maintainer'), treat the end date claim as 'VERIFIED'.
+    - Do not demand a factual proof of a blank or 'Present' end date for ongoing projects.
   - Determine the status:
     - 'VERIFIED': Strong evidence found.
     - 'PLAUSIBLE': Inferred from context or supported by general themes.
