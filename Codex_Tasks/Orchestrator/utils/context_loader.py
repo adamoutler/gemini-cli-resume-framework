@@ -147,6 +147,7 @@ def _parse_codex_jsonl(stdout):
     messages = []
     usage = None
     events = []
+    api_error = None
 
     for line in stdout.splitlines():
         line = line.strip()
@@ -169,12 +170,18 @@ def _parse_codex_jsonl(stdout):
                     messages.append(text)
         elif event_type == "turn.completed":
             usage = event.get("usage")
+        elif event_type == "error":
+            api_error = event.get("message")
+        elif event_type == "turn.failed":
+            error_obj = event.get("error", {})
+            api_error = error_obj.get("message", "Unknown turn failure")
 
     return {
         "thread_id": thread_id,
         "text": "\n".join(messages).strip(),
         "usage": usage,
         "events": events,
+        "api_error": api_error
     }
 
 def run_codex_json(cmd, prompt, timeout=1800):

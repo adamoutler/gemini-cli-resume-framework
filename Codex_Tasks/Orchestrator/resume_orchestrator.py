@@ -53,9 +53,15 @@ def call_codex(persona_header, user_task, session_id=None, model=None):
         try:
             if session_id:
                 response = resume_codex_session(session_id, full_prompt, model=model)
-                stdout = response.get("text") or response.get("stdout") or ""
-                stderr = response.get("stderr") or ""
-                returncode = response.get("returncode", 1)
+                api_error = response.get("api_error")
+                if api_error:
+                    stdout = ""
+                    stderr = api_error
+                    returncode = 1
+                else:
+                    stdout = response.get("text") or response.get("stdout") or ""
+                    stderr = response.get("stderr") or ""
+                    returncode = response.get("returncode", 1)
             else:
                 cmd = ["codex", "exec", "--model", model, "--color", "never", "-"]
                 result = subprocess.run(
@@ -79,7 +85,7 @@ def call_codex(persona_header, user_task, session_id=None, model=None):
             # Error handling
             err_msg = stderr.lower()
             log("DEBUG", f"Call failed. returncode={returncode}, stdout length={len(stdout)}, stderr length={len(stderr)}\nStderr Tail: {stderr[-1000:]}")
-            if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or returncode != 0:
+            if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or "limit" in err_msg or returncode != 0:
                 if attempt == MAX_RETRIES - 1:
                     break
                 wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600

@@ -243,9 +243,15 @@ def call_agent(prompt, session_id=None):
         try:
             if session_id:
                 response = resume_codex_session(session_id, prompt, model=MODEL)
-                stdout = response.get("text") or response.get("stdout") or ""
-                stderr = response.get("stderr") or ""
-                returncode = response.get("returncode", 1)
+                api_error = response.get("api_error")
+                if api_error:
+                    stdout = ""
+                    stderr = api_error
+                    returncode = 1
+                else:
+                    stdout = response.get("text") or response.get("stdout") or ""
+                    stderr = response.get("stderr") or ""
+                    returncode = response.get("returncode", 1)
             else:
                 result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding='utf-8', check=False, timeout=1800)
                 stdout = result.stdout or ""
@@ -257,7 +263,7 @@ def call_agent(prompt, session_id=None):
                 return stdout
 
             err_msg = stderr.lower()
-            if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg:
+            if "429" in err_msg or "resource" in err_msg or "exhausted" in err_msg or "limit" in err_msg:
                 if attempt == MAX_RETRIES - 1:
                     break
                 wait_time = backoff_times[attempt] if attempt < len(backoff_times) else 600
