@@ -66,7 +66,7 @@ def call_codex(system_prompt, user_input):
 def extract_json(text):
     if not text: return None
     import re
-    match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    match = re.search(r'```(?:json)?\s*(\{.*\})\s*```', text, re.DOTALL)
     if match:
         try: return json.loads(match.group(1))
         except: pass
