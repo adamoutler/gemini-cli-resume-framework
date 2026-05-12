@@ -469,7 +469,7 @@ def run_final_audit(findings, regression_failures, output_path):
             prompt = (
                 f"# ACTIVATING IDENTITY\n{persona_instructions}\n\n"
                 "# EXECUTION ORDER\n"
-                "Review these exceptions. If they are plausible based on the context, mark them verified. If not, explain why.\n\n"
+                "Review these exceptions. Only fully supported claims based on strict factual evidence should pass. Plausible claims that lack concrete evidence must be reported as exceptions. Explain your verdict for each.\n\n"
                 f"```json\n{json.dumps(exceptions, indent=2)}\n```"
             )
             # This QA step is usually single-shot (no deep context required, just logic), 
@@ -478,6 +478,8 @@ def run_final_audit(findings, regression_failures, output_path):
             response_text = call_agent(prompt) 
             if response_text:
                 full_report += response_text
+                # Filter exceptions to only those that appear in the response text
+                exceptions = [ex for ex in exceptions if ex.get('claim', '')[:50] in response_text]
         except Exception as e:
             log(f"Failed to load qa_auditor_persona or run final review: {e}")
             for ex in exceptions:

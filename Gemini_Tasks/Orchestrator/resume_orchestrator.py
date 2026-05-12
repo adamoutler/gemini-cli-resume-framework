@@ -98,7 +98,7 @@ def call_gemini(persona_header, user_task, session_id=None):
 def extract_json(text):
     if not text: return None
     import re
-    match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    match = re.search(r'```(?:json)?\s*(\{.*\})\s*```', text, re.DOTALL)
     if match:
         try: return json.loads(match.group(1))
         except: pass
@@ -575,21 +575,21 @@ def run_workflow(jd_name, sentinel_only=False, skip_existing=False, notes=None, 
                     fix_task = (
                         f"### DRAFT RESUME ###\n{json.dumps(resume_json)}\n\n"
                         f"### REGRESSION FAILURES ###\n{json.dumps(failed_claims)}\n\n"
-                        "Fix the resume to comply with these formatting rules."
+                        "Fix the resume to comply with these formatting rules. Return the FULL updated resume JSON object. Ensure you output the complete JSON object and do not truncate."
                     )
                 elif failure_type == "SYSTEM_ERROR":
                     log("WARN", "Audit failed due to a SYSTEM_ERROR (crash).")
                     fix_task = (
                         f"### DRAFT RESUME ###\n{json.dumps(resume_json)}\n\n"
                         f"### SYSTEM ERROR ###\n{json.dumps(failed_claims)}\n\n"
-                        "The audit script crashed, likely due to malformed output or unexpected structure. Please regenerate the resume focusing on strictly adhering to the standard JSON Resume schema and plain text."
+                        "The audit script crashed, likely due to malformed output or unexpected structure. Please regenerate the resume focusing on strictly adhering to the standard JSON Resume schema and plain text. Return the FULL updated resume JSON object. Ensure you output the complete JSON object and do not truncate."
                     )
                 else:
                     log("WARN", "Audit failed due to FACTUAL inconsistencies.")
                     fix_task = (
                         f"### DRAFT RESUME ###\n{json.dumps(resume_json)}\n\n"
                         f"### AUDIT FAILURES ###\n{json.dumps(failed_claims)}\n\n"
-                        "Remove or rephrase these claims to be strictly factual based on the CV Data in your history."
+                        "Remove or rephrase these claims to be strictly factual based on the CV Data in your history. Return the FULL updated resume JSON object. Ensure you output the complete JSON object and do not truncate."
                     )
                 
                 fixed_raw = call_gemini(fixer_persona, fix_task, session_id=fixer_session)
