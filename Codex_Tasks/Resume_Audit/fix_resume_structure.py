@@ -6,7 +6,7 @@ import glob
 import argparse
 
 # Configuration
-MODEL = "gpt-5.4"
+MODEL = "gpt-5.5"
 CV_DATA_DIR = "./cv-data"
 
 def load_context(data_dir):

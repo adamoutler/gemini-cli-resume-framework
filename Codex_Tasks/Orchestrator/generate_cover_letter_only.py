@@ -5,7 +5,7 @@ import subprocess
 from utils.context_loader import load_cv_context, load_persona
 
 # Configuration
-MODEL = "gpt-5.4"
+MODEL = "gpt-5.5"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))
 CV_DATA_DIR = os.path.join(PROJECT_ROOT, "cv-data")

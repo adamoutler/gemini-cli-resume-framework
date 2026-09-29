@@ -3,8 +3,8 @@ import glob
 import json
 import subprocess
 
-DEFAULT_CONTEXT_MODEL = "gpt-5.4-mini"
-DEFAULT_TASK_MODEL = "gpt-5.4"
+DEFAULT_CONTEXT_MODEL = "gpt-5.5"
+DEFAULT_TASK_MODEL = "gpt-5.5"
 
 def load_cv_context(data_dir):
     """

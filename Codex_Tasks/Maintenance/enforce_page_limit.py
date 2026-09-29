@@ -31,12 +31,12 @@ def log(level, message):
 def call_codex(system_prompt, user_input, max_retries=3):
     """Calls Codex API with exponential backoff."""
     full_prompt = f"{system_prompt}\n\n--- INPUT DATA ---\n{user_input}"
-    cmd = ["codex", "exec", "--model", "gpt-5.4", "--color", "never", "-"]
+    cmd = ["codex", "exec", "--model", "gpt-5.5", "--color", "never", "-"]
     
     # Try to use master session if available in env
     session_id = os.environ.get('MASTER_SESSION_ID')
     if session_id:
-        cmd = ["codex", "exec", "resume", "--model", "gpt-5.4", session_id, "-"]
+        cmd = ["codex", "exec", "resume", "--model", "gpt-5.5", session_id, "-"]
     
     for attempt in range(max_retries):
         try:

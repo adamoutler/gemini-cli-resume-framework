@@ -10,11 +10,11 @@ from utils.context_loader import load_cv_context, load_persona, resume_codex_ses
 from utils.session_manager import init_master_session, fork_session
 
 # Configuration
-CONTEXT_MODEL = "gpt-5.4-mini"
+CONTEXT_MODEL = "gpt-5.5"
 SENTINEL_MODEL = "gpt-5.5"
 BUILDER_MODEL = "gpt-5.5"
 REVIEWER_MODEL = "gpt-5.5"
-FIXER_MODEL = "gpt-5.4-mini"
+FIXER_MODEL = "gpt-5.5"
 COVER_LETTER_MODEL = "gpt-5.5"
 ORCHESTRATOR_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(ORCHESTRATOR_DIR))

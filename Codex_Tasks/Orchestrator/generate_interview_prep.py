@@ -17,7 +17,7 @@ def log(msg):
     print(f"[PREP] {msg}", flush=True)
 
 def call_codex(system_prompt, user_input):
-    cmd = ["codex", "exec", "--model", "gpt-5.4-mini", "--color", "never", "-"]
+    cmd = ["codex", "exec", "--model", "gpt-5.5", "--color", "never", "-"]
     full_prompt = f"{system_prompt}\n\n--- INPUT DATA ---\n{user_input}"
     try:
         result = subprocess.run(

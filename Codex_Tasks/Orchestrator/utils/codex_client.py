@@ -7,7 +7,7 @@ import re
 from collections import Counter
 
 # Configuration
-MODEL = "gpt-5.4"
+MODEL = "gpt-5.5"
 MAX_RETRIES = 5
 
 def log(step, message):
