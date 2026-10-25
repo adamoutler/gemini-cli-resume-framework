@@ -1,11 +1,42 @@
 {
   "dependencies": {
-    "@google/gemini-cli": "^0.39.0",
+    "@google/gemini-cli": "^0.39.1",
     "jsonresume-theme-elegant": "^1.16.1",
     "jsonresume-theme-even": "^0.26.1",
     "jsonresume-theme-kendall": "^0.2.0",
     "jsonresume-theme-modern": "^0.0.5",
     "jsonresume-theme-stackoverflow": "^2.1.0",
     "resume-cli": "^3.1.2"
+  },
+  "overrides": {
+    "argparse": "^2.0.1",
+    "axios": "^1.20.0",
+    "brace-expansion": "^1.1.21",
+    "chokidar": "^4.0.3",
+    "decode-uri-component": "^0.5.0",
+    "dset": "^3.1.4",
+    "engine.io": "^6.6.10",
+    "expect": "^30.5.2",
+    "follow-redirects": "^1.16.1",
+    "form-data": "^3.0.5",
+    "handlebars": "^4.7.10",
+    "immutable": "^3.8.4",
+    "jest-message-util": "^30.5.1",
+    "js-yaml": "^3.15.2",
+    "linkify-it": "^5.0.2",
+    "markdown-it": "^14.3.3",
+    "micromatch": "^4.0.8",
+    "moment": "^2.31.0",
+    "pug": "^3.0.3",
+    "pug-code-gen": "^3.0.3",
+    "puppeteer": "^25.16.0",
+    "puppeteer-core": "^25.16.0",
+    "qs": "^6.16.0",
+    "send": "^0.19.0",
+    "serve-static": "^1.16.0",
+    "socket.io-parser": "^4.2.7",
+    "tar": "^7.5.21",
+    "tar-fs": "^2.1.4",
+    "ws": "^8.21.0"
   }
 }
